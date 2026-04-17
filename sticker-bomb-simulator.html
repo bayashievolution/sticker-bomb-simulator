@@ -1,0 +1,2963 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STICKER BOMB SIMULATOR</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #f5f5f5;
+            min-height: 100vh;
+            user-select: none;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #262626; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #facc15; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #fde047; }
+
+        .header {
+            border-bottom: 2px solid #facc15;
+            background: #171717;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .header-left { display: flex; align-items: center; gap: 0.75rem; }
+        .logo {
+            width: 40px; height: 40px;
+            background: #facc15; color: #0a0a0a;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.25rem; transform: rotate(-6deg);
+        }
+        .title { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.025em; }
+        .title-accent { color: #facc15; }
+        .subtitle { font-size: 0.75rem; color: #a3a3a3; letter-spacing: 0.1em; }
+        .header-right { font-size: 0.75rem; color: #737373; text-align: right; }
+
+        .main-container { display: flex; flex-direction: column; gap: 1rem; padding: 1rem; }
+        @media (min-width: 1024px) { .main-container { flex-direction: row; } }
+
+        .sidebar { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
+        @media (min-width: 1024px) { .sidebar { width: 18rem; flex-shrink: 0; } }
+
+        .section { background: #171717; border: 1px solid #262626; padding: 1rem; }
+        .section-title {
+            font-size: 0.75rem; font-weight: 700;
+            letter-spacing: 0.1em; color: #facc15; margin-bottom: 0.75rem;
+        }
+
+        .bomb-btn {
+            width: 100%; background: #facc15; color: #0a0a0a; border: none;
+            padding: 1rem; font-size: 1.25rem; font-weight: 900;
+            letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s;
+        }
+        .bomb-btn:hover:not(:disabled) { background: #fde047; transform: scale(1.02); }
+        .bomb-btn:disabled { background: #404040; color: #737373; cursor: not-allowed; }
+
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+        .action-btn {
+            background: #262626; border: none; color: #f5f5f5;
+            padding: 0.5rem; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.25rem;
+        }
+        .action-btn:hover:not(:disabled) { background: #404040; }
+        .action-btn.danger:hover:not(:disabled) { background: #7f1d1d; }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .size-align-controls { display: flex; flex-direction: column; gap: 0.5rem; }
+        .size-align-option {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.75rem; cursor: pointer;
+        }
+        .size-align-option input { width: 16px; height: 16px; accent-color: #facc15; }
+
+        .upload-area {
+            width: 100%; border: 2px dashed #404040; padding: 1rem;
+            text-align: center; font-size: 0.875rem; cursor: pointer;
+            transition: all 0.2s; display: flex; flex-direction: column;
+            align-items: center; gap: 0.25rem;
+        }
+        .upload-area:hover { border-color: #facc15; background: #262626; }
+        .upload-area input { display: none; }
+        .upload-subtitle { font-size: 0.75rem; color: #737373; }
+        .upload-summary {
+            padding: 0.5rem; background: #262626; border-radius: 4px;
+            margin-bottom: 0.75rem; text-align: center;
+            font-size: 0.75rem; color: #a3a3a3;
+        }
+        .upload-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.5rem; max-height: 300px; overflow-y: auto;
+        }
+        .upload-item {
+            position: relative; aspect-ratio: 1; background: #262626;
+            border: 2px solid transparent; border-radius: 6px; overflow: hidden;
+        }
+        .upload-item img { width: 100%; height: 100%; object-fit: contain; }
+        .frequency-badge {
+            position: absolute; top: 3px; right: 3px;
+            background: #22c55e; color: #0a0a0a; border-radius: 50%;
+            width: 20px; height: 20px; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; cursor: pointer;
+        }
+        .frequency-badge:hover { background: #16a34a; }
+        .control-buttons {
+            position: absolute; bottom: 3px; left: 3px; right: 3px;
+            display: flex; gap: 2px;
+        }
+        .thumb-add-btn, .thumb-del-btn {
+            flex: 1; border: none; padding: 4px; font-size: 12px;
+            cursor: pointer; border-radius: 2px; color: white;
+        }
+        .thumb-add-btn { background: rgba(34,197,94,0.8); }
+        .thumb-add-btn:hover { background: rgba(34,197,94,1); }
+        .thumb-del-btn { background: rgba(239,68,68,0.8); }
+        .thumb-del-btn:hover { background: rgba(239,68,68,1); }
+
+        .frequency-section {
+            margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #404040;
+        }
+        .frequency-title { font-size: 0.75rem; color: #facc15; font-weight: 700; margin-bottom: 0.5rem; }
+        .frequency-label {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.75rem; color: #f5f5f5;
+        }
+        .frequency-select {
+            background: #262626; border: 1px solid #404040; color: #f5f5f5;
+            padding: 0.25rem; border-radius: 4px; font-size: 0.75rem;
+        }
+
+        .mode-buttons { display: flex; flex-direction: column; gap: 0.5rem; }
+        .mode-btn {
+            width: 100%; padding: 0.75rem; text-align: left;
+            border: 2px solid #262626; background: transparent;
+            color: #f5f5f5; cursor: pointer; transition: all 0.2s;
+        }
+        .mode-btn.active { border-color: #facc15; background: rgba(250,204,21,0.1); }
+        .mode-btn:hover:not(.active) { border-color: #525252; }
+        .mode-title { font-weight: 700; font-size: 0.875rem; }
+        .mode-desc { font-size: 0.75rem; color: #a3a3a3; margin-top: 0.25rem; }
+
+        .target-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.25rem; margin-bottom: 0.75rem; }
+        .target-btn {
+            padding: 0.5rem; border: 1px solid #404040; background: transparent;
+            color: #f5f5f5; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+        }
+        .target-btn.active { border-color: #facc15; background: rgba(250,204,21,0.1); color: #facc15; }
+        .target-btn:hover:not(.active) { border-color: #525252; }
+        .custom-target-hint {
+            margin-top: 0.5rem; text-align: center; padding: 0.5rem;
+            background: rgba(250,204,21,0.1); border: 1px solid #facc15; border-radius: 4px;
+        }
+
+        .canvas-mode-grid {
+            display: grid; grid-template-columns: repeat(3,1fr); gap: 0.25rem;
+        }
+        .canvas-mode-btn {
+            padding: 0.375rem; border: 1px solid #404040; background: transparent;
+            color: #f5f5f5; font-size: 0.625rem; cursor: pointer;
+            transition: all 0.2s; text-align: center;
+        }
+        .canvas-mode-btn.active { border-color: #facc15; background: rgba(250,204,21,0.1); color: #facc15; }
+        .canvas-mode-btn:hover:not(.active) { border-color: #525252; }
+
+        .dummy-toggle { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .dummy-checkbox {
+            width: 16px; height: 16px; border: 2px solid #404040;
+            background: transparent; cursor: pointer; position: relative;
+        }
+        .dummy-checkbox.checked { border-color: #facc15; background: #facc15; }
+        .dummy-checkbox.checked::after {
+            content: "\2713"; position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: #0a0a0a; font-size: 10px; font-weight: 700;
+        }
+        .dummy-label { font-size: 0.75rem; color: #f5f5f5; }
+        .dummy-intensity { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+        .intensity-label { font-size: 0.75rem; color: #a3a3a3; }
+        .intensity-slider {
+            flex: 1; height: 6px; background: #404040; border-radius: 3px;
+            position: relative; cursor: pointer;
+        }
+        .intensity-slider::before {
+            content: ""; position: absolute; left: 0; top: 0; height: 100%;
+            background: #facc15; border-radius: 3px; width: var(--value, 50%);
+        }
+        .intensity-slider::after {
+            content: ""; position: absolute; top: -4px;
+            left: var(--value, 50%); transform: translateX(-50%);
+            width: 14px; height: 14px; background: #facc15;
+            border-radius: 50%; border: 2px solid #171717;
+        }
+        .intensity-value { font-size: 0.75rem; color: #facc15; min-width: 2rem; text-align: right; }
+
+        .dummy-color-mode { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #404040; }
+        .dummy-color-title { font-size: 0.75rem; color: #facc15; font-weight: 700; margin-bottom: 0.5rem; }
+        .color-mode-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.25rem; margin-bottom: 0.5rem; }
+        .color-mode-btn {
+            padding: 0.375rem; border: 1px solid #404040; background: transparent;
+            color: #f5f5f5; font-size: 0.625rem; cursor: pointer;
+            transition: all 0.2s; border-radius: 2px;
+        }
+        .color-mode-btn.active { border-color: #facc15; background: rgba(250,204,21,0.1); color: #facc15; }
+        .color-mode-btn:hover:not(.active) { border-color: #525252; }
+        .monochrome-picker { margin-top: 0.5rem; }
+        .monochrome-label {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.75rem; color: #f5f5f5;
+        }
+        .monochrome-label input[type="color"] {
+            width: 24px; height: 24px; border: none; border-radius: 50%; cursor: pointer;
+        }
+
+        .canvas-section { flex: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+        .canvas-header { background: #171717; border: 1px solid #262626; padding: 0.75rem; }
+        .canvas-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .canvas-stats { font-size: 0.75rem; color: #737373; letter-spacing: 0.1em; }
+        .selected-info { font-size: 0.75rem; color: #facc15; }
+
+        .canvas-wrapper {
+            position: relative; display: flex; justify-content: center;
+            overflow: hidden;
+        }
+        .canvas-container {
+            position: relative; width: 100%; aspect-ratio: 3/2;
+            background: #d4d4d4;
+            background-image: repeating-conic-gradient(#d4d4d4 0% 25%, #e5e5e5 0% 50%);
+            background-size: 20px 20px;
+            overflow: hidden; touch-action: none;
+        }
+
+        .sticker { position: absolute; cursor: move; }
+        .sticker img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .sticker.selected {
+            outline: 2px solid #facc15; outline-offset: 2px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+        .resize-handle {
+            position: absolute; right: -8px; bottom: -8px;
+            width: 16px; height: 16px; background: #facc15;
+            border: 2px solid #171717; cursor: nwse-resize;
+        }
+        .rotate-handle {
+            position: absolute; left: 50%; top: -32px; transform: translateX(-50%);
+            width: 20px; height: 20px; background: #facc15;
+            border: 2px solid #171717; border-radius: 50%; cursor: grab;
+        }
+        .rotate-handle::before {
+            content: "\21BA"; display: flex; align-items: center;
+            justify-content: center; width: 100%; height: 100%;
+            font-size: 12px; color: #171717;
+        }
+        .rotate-line {
+            position: absolute; left: 50%; top: -16px; transform: translateX(-50%);
+            width: 2px; height: 12px; background: #facc15;
+        }
+        .empty-canvas {
+            position: absolute; inset: 0; display: flex;
+            align-items: center; justify-content: center;
+            color: #a3a3a3; text-align: center;
+        }
+        .empty-canvas .icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.4; }
+        .target-indicator {
+            position: absolute; width: 20px; height: 20px;
+            border: 2px solid #facc15; background: rgba(250,204,21,0.3);
+            border-radius: 50%; transform: translate(-50%,-50%);
+            pointer-events: none; animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 0.8; transform: translate(-50%,-50%) scale(1); }
+            50% { opacity: 0.4; transform: translate(-50%,-50%) scale(1.2); }
+        }
+
+        .controls {
+            background: #171717; border: 2px solid #facc15; padding: 0.75rem;
+            max-height: 0; overflow: hidden; opacity: 0;
+            border-width: 0; padding: 0; margin: 0;
+            transition: max-height 0.3s ease-out, opacity 0.25s ease-out, padding 0.3s, border-width 0.1s 0.25s;
+        }
+        .controls.show {
+            max-height: 300px; opacity: 1;
+            border-width: 2px; padding: 0.75rem;
+            transition: max-height 0.35s ease-in, opacity 0.25s 0.05s ease-in, padding 0.3s, border-width 0.1s;
+        }
+        .controls-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .controls-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #facc15; }
+        .close-btn { color: #737373; cursor: pointer; font-size: 1rem; }
+        .close-btn:hover { color: #f5f5f5; }
+        .controls-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; }
+        @media (min-width: 640px) { .controls-grid { grid-template-columns: repeat(6,1fr); } }
+        .control-btn {
+            background: #262626; border: none; color: #f5f5f5;
+            padding: 0.5rem; font-size: 0.75rem; cursor: pointer;
+            transition: background 0.2s; display: flex;
+            align-items: center; justify-content: center;
+            gap: 0.25rem; flex-direction: column;
+        }
+        .control-btn:hover { background: #404040; }
+        .control-btn.danger:hover { background: #7f1d1d; }
+
+        .export-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+        .export-btn {
+            width: 100%; padding: 0.5rem; border: 1px solid #404040;
+            background: #262626; color: #f5f5f5; font-size: 0.75rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .export-btn:hover:not(:disabled) { background: #404040; border-color: #facc15; }
+        .export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .export-btn.primary { background: #facc15; color: #0a0a0a; border-color: #facc15; }
+        .export-btn.primary:hover:not(:disabled) { background: #fde047; }
+
+        .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+        .frequency-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: #171717; border: 2px solid #facc15; border-radius: 8px;
+            padding: 1.5rem; z-index: 1000; min-width: 220px;
+        }
+        .frequency-popup h3 { color: #facc15; margin-bottom: 1rem; text-align: center; font-size: 0.875rem; }
+        .popup-controls { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+        .popup-controls button {
+            width: 36px; height: 36px; border: none; background: #262626;
+            color: #f5f5f5; cursor: pointer; border-radius: 4px; font-size: 1.2rem;
+        }
+        .popup-controls button:hover { background: #404040; }
+        .frequency-display { flex: 1; text-align: center; font-size: 1.5rem; color: #22c55e; font-weight: 700; }
+        .popup-buttons { display: flex; gap: 0.5rem; }
+        .popup-buttons button {
+            flex: 1; padding: 0.5rem; border: none; border-radius: 4px;
+            cursor: pointer; font-weight: 700;
+        }
+        .popup-ok { background: #22c55e; color: #0a0a0a; }
+        .popup-cancel { background: #737373; color: #f5f5f5; }
+
+        .hidden { display: none !important; }
+
+        /* LET'S BOMB! ボタン */
+        .wizard-trigger {
+            background: #facc15; color: #0a0a0a; border: none;
+            padding: 8px 20px; font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 0.95rem; font-weight: 400; letter-spacing: 0.05em;
+            cursor: pointer; border-radius: 4px;
+            transform: rotate(-2deg);
+            transition: all 0.2s;
+        }
+        .wizard-trigger:hover { background: #fde047; transform: rotate(0deg) scale(1.05); }
+
+        /* ウィザードモーダル */
+        .wizard-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 11000; display: flex; align-items: center; justify-content: center;
+        }
+        .wizard-modal {
+            background: #171717; border: 2px solid #facc15;
+            padding: 2rem; width: 90%; max-width: 360px;
+            text-align: center;
+        }
+        .wizard-title {
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2rem; color: #facc15; margin-bottom: 0.25rem;
+        }
+        .wizard-sub {
+            font-size: 0.8rem; color: #a3a3a3; margin-bottom: 1.5rem;
+        }
+        .wizard-upload {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0.25rem; padding: 1.5rem; border: 2px dashed #404040;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            color: #a3a3a3; font-size: 0.85rem;
+        }
+        .wizard-upload:hover { border-color: #facc15; background: #262626; }
+        .wizard-upload-icon {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #262626; border: 2px solid #facc15;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #facc15; font-weight: 900;
+        }
+        .wizard-preview {
+            display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+            margin-top: 1rem; max-height: 120px; overflow-y: auto;
+        }
+        .wizard-preview img {
+            width: 50px; height: 50px; object-fit: contain;
+            background: #262626; border-radius: 4px; border: 1px solid #404040;
+        }
+        .wizard-next {
+            width: 100%; padding: 12px; margin-top: 1rem; border: none;
+            background: #facc15; color: #0a0a0a; font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.2rem; font-weight: 400; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em;
+        }
+        .wizard-next:hover:not(:disabled) { background: #fde047; transform: scale(1.02); }
+        .wizard-next:disabled { background: #404040; color: #737373; cursor: not-allowed; }
+        .wizard-next.wizard-save {
+            background: transparent; border: 2px solid #facc15; color: #facc15;
+            font-size: 1rem;
+        }
+        .wizard-next.wizard-save:hover { background: rgba(250,204,21,0.15); }
+        .wizard-close-link {
+            display: block; margin-top: 1rem; background: none; border: none;
+            color: #737373; font-size: 0.75rem; cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        .wizard-close-link:hover { color: #f5f5f5; }
+
+        /* モバイルフッターナビ */
+        .mobile-footer {
+            display: none;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #0a0a0a; border-top: 2px solid #facc15;
+            z-index: 8000;
+        }
+        .mobile-footer-scroll {
+            display: flex; overflow-x: auto; gap: 4px;
+            padding: 6px 8px; -webkit-overflow-scrolling: touch;
+        }
+        .mobile-footer-scroll::-webkit-scrollbar { height: 0; }
+        .mf-btn {
+            flex-shrink: 0; padding: 8px 14px;
+            font-size: 0.75rem; font-weight: 900; cursor: pointer;
+            border-radius: 4px; white-space: nowrap;
+            font-family: 'Courier New', monospace;
+            transition: all 0.15s;
+        }
+        .mf-btn.action {
+            background: #facc15; color: #0a0a0a; border: 2px solid #facc15;
+        }
+        .mf-btn.action:active { background: #fde047; }
+        .mf-btn.action:disabled { background: #262626; color: #525252; border-color: #404040; }
+        .mf-btn.action.danger { background: transparent; color: #ef4444; border: 2px solid #ef4444; }
+        .mf-btn.action.danger:active { background: #ef4444; color: #fff; }
+        .mf-btn.action.danger:disabled { color: #525252; border-color: #404040; }
+        .mf-btn.menu {
+            background: transparent; color: #facc15; border: 2px solid #facc15;
+            font-size: 0.8rem; letter-spacing: 0.05em;
+        }
+        .mf-btn.menu:active { background: rgba(250,204,21,0.2); }
+        .mf-btn.menu.active { background: #facc15; color: #0a0a0a; }
+
+        .mobile-panel {
+            position: fixed; bottom: 50px; left: 0; right: 0;
+            max-height: 55vh;
+            background: #171717; border-top: none;
+            z-index: 7999;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+        .mobile-panel.open {
+            transform: translateY(0);
+            border-top: 1px solid #facc15;
+            transition: transform 0.3s cubic-bezier(0, 0, 0.2, 1);
+        }
+        .mobile-panel.dragging { transition: none; }
+        .panel-latch {
+            display: flex; align-items: center; justify-content: center;
+            padding: 8px 0 4px; cursor: grab; touch-action: none;
+        }
+        .panel-latch-bar {
+            width: 40px; height: 4px; background: #525252;
+            border-radius: 2px; transition: background 0.2s;
+        }
+        .panel-latch:active .panel-latch-bar { background: #facc15; }
+        .panel-content {
+            overflow-y: auto; max-height: calc(55vh - 24px);
+        }
+        .mobile-panel .section {
+            border: none; border-bottom: 1px solid #262626;
+        }
+        .mobile-panel::-webkit-scrollbar { width: 4px; }
+        .mobile-panel::-webkit-scrollbar-thumb { background: #facc15; border-radius: 2px; }
+
+        @media (max-width: 1023px) {
+            .mobile-footer { display: block; }
+            .mobile-panel { display: block; }
+            .sidebar { display: none; }
+            body { padding-bottom: 54px; }
+            .canvas-container { max-height: calc(100vh - 54px - 80px); }
+            .canvas-wrapper { max-height: calc(100vh - 54px - 80px); }
+        }
+
+        /* ダミーボムにゅっとスライド */
+        .dummy-slide {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+        .dummy-slide.open {
+            max-height: 500px;
+            opacity: 1;
+            transition: max-height 0.4s ease-in, opacity 0.3s 0.05s ease-in;
+        }
+        .dummy-slide-inner {
+            padding-top: 0.75rem;
+        }
+
+        /* ステッカー貼り付けアニメーション */
+        @keyframes stickerSlap {
+            0% { transform: rotate(var(--rot)) scale(3) translateZ(200px); opacity: 0; filter: blur(4px); }
+            60% { transform: rotate(var(--rot)) scale(0.9); opacity: 1; filter: blur(0); }
+            75% { transform: rotate(var(--rot)) scale(1.08); }
+            100% { transform: rotate(var(--rot)) scale(1); }
+        }
+        .sticker.slap-in {
+            animation: stickerSlap 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* キャンバス振動 */
+        @keyframes canvasShake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-3px, 2px); }
+            20% { transform: translate(4px, -2px); }
+            30% { transform: translate(-2px, 3px); }
+            40% { transform: translate(3px, -1px); }
+            50% { transform: translate(-1px, 2px); }
+            60% { transform: translate(2px, -3px); }
+            70% { transform: translate(-3px, 1px); }
+            80% { transform: translate(1px, -2px); }
+            90% { transform: translate(-2px, 1px); }
+        }
+        .canvas-wrapper.shaking {
+            animation: canvasShake 0.3s ease-out;
+        }
+
+        /* BOMB時の大きい振動 */
+        @keyframes canvasBombShake {
+            0%, 100% { transform: translate(0, 0) rotate(0); }
+            10% { transform: translate(-6px, 4px) rotate(-0.5deg); }
+            20% { transform: translate(8px, -5px) rotate(0.5deg); }
+            30% { transform: translate(-5px, 6px) rotate(-0.3deg); }
+            40% { transform: translate(6px, -3px) rotate(0.4deg); }
+            50% { transform: translate(-3px, 5px) rotate(-0.2deg); }
+            60% { transform: translate(4px, -6px) rotate(0.3deg); }
+            70% { transform: translate(-6px, 3px) rotate(-0.4deg); }
+            80% { transform: translate(3px, -4px) rotate(0.2deg); }
+            90% { transform: translate(-2px, 2px) rotate(-0.1deg); }
+        }
+        .canvas-wrapper.bomb-shaking {
+            animation: canvasBombShake 0.5s ease-out;
+        }
+
+        /* ベリベリ剥がしアニメーション */
+        @keyframes stickerPeel {
+            0% { transform: rotate(var(--rot)) scale(1); opacity: 1; filter: none; }
+            15% { transform: rotate(var(--rot)) scale(1.05) skewX(-3deg); opacity: 1; }
+            30% { transform: rotate(var(--rot)) scale(1.08) skewX(5deg) skewY(-2deg); opacity: 0.9; }
+            50% { transform: rotate(calc(var(--rot) + 8deg)) scale(1.1) skewX(8deg) translateY(-10px); opacity: 0.7; filter: drop-shadow(4px 4px 6px rgba(0,0,0,0.4)); }
+            70% { transform: rotate(calc(var(--rot) + 15deg)) scale(0.9) skewX(12deg) translateY(-30px) translateX(20px); opacity: 0.4; }
+            100% { transform: rotate(calc(var(--rot) + 25deg)) scale(0.3) translateY(-80px) translateX(60px); opacity: 0; }
+        }
+        .sticker.peel-off {
+            animation: stickerPeel 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+            pointer-events: none;
+        }
+
+        /* マリオペイント風 爆弾＆爆発 */
+        .bomb-icon {
+            position: absolute; left: 50%; top: -120px;
+            transform: translateX(-50%);
+            font-size: 100px; z-index: 9999;
+            animation: bombDrop 0.5s cubic-bezier(0.6, 0, 1, 1) forwards;
+            pointer-events: none;
+        }
+        @keyframes bombDrop {
+            0% { top: -120px; transform: translateX(-50%) rotate(0deg); }
+            70% { top: 35%; transform: translateX(-50%) rotate(360deg); }
+            85% { top: 33%; transform: translateX(-50%) rotate(380deg) scale(1.1); }
+            100% { top: 35%; transform: translateX(-50%) rotate(360deg) scale(1); }
+        }
+        .bomb-icon.fuse {
+            animation: bombFuse 0.3s ease-in-out infinite alternate;
+            pointer-events: auto; cursor: pointer;
+        }
+        @keyframes bombFuse {
+            0% { transform: translateX(-50%) rotate(355deg) scale(1); }
+            100% { transform: translateX(-50%) rotate(365deg) scale(1.12); }
+        }
+        .bomb-countdown {
+            position: absolute; left: 50%; top: 35%;
+            transform: translate(-50%, 10%);
+            z-index: 10001; pointer-events: none;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .bomb-countdown .count-num {
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 3.5rem; font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px rgba(255,100,0,0.8), 0 2px 4px rgba(0,0,0,0.8);
+            line-height: 1;
+            animation: countPulse 0.3s ease-out;
+        }
+        .bomb-countdown .tap-label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem; font-weight: 900; color: #facc15;
+            letter-spacing: 0.05em; margin-top: 4px;
+            text-shadow: 0 0 10px rgba(250,204,21,0.6), 0 1px 3px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;
+        }
+        @keyframes countPulse {
+            0% { transform: scale(1.8); opacity: 0.5; }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .bomb-countdown .count-num.boom {
+            font-size: 2.5rem; color: #facc15;
+            animation: countPulse 0.2s ease-out;
+        }
+        .explosion {
+            position: absolute; left: 50%; top: 45%;
+            transform: translate(-50%, -50%);
+            z-index: 9999; pointer-events: none;
+        }
+        .explosion-ring {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            border-radius: 50%; opacity: 0.9;
+        }
+        .explosion-ring.r1 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, #facc15 0%, #ff6600 30%, #ff0000 60%, transparent 70%);
+            animation: explodeRing 0.5s ease-out forwards;
+        }
+        .explosion-ring.r2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #ffffff 0%, #facc15 40%, transparent 65%);
+            animation: explodeRing 0.4s 0.05s ease-out forwards;
+        }
+        .explosion-ring.r3 {
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, #ffffff 0%, #fde047 50%, transparent 70%);
+            animation: explodeRing 0.3s 0.1s ease-out forwards;
+        }
+        @keyframes explodeRing {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+        }
+        .explosion-flash {
+            position: absolute; inset: 0;
+            background: #ffffff; opacity: 0; z-index: 9998;
+            animation: flashBang 0.3s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes flashBang {
+            0% { opacity: 0; }
+            15% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+
+        /* BOMB!! 吹き出し */
+        .bomb-burst-text {
+            position: absolute; left: 50%; top: 45%;
+            transform: translate(-50%, -50%) scale(0) rotate(-5deg);
+            z-index: 10000; pointer-events: none;
+            animation: burstTextIn 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) forwards;
+        }
+        .bomb-burst-text svg { width: 320px; height: 200px; filter: drop-shadow(4px 4px 0 rgba(0,0,0,0.3)); }
+        @keyframes burstTextIn {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-12deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.15) rotate(2deg); opacity: 1; }
+            75% { transform: translate(-50%, -50%) scale(0.95) rotate(-2deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); opacity: 1; }
+        }
+        .bomb-burst-text.fade-out {
+            animation: burstTextOut 0.2s ease-in forwards;
+        }
+        @keyframes burstTextOut {
+            0% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.3) rotate(5deg); opacity: 0; }
+        }
+
+        /* キャンバス形状 SVG clip-path */
+        .canvas-container.shape-skateboard {
+            aspect-ratio: 1/3.5; max-width: 200px;
+            clip-path: url(#clip-skateboard);
+        }
+        .canvas-container.shape-phone {
+            aspect-ratio: 9/19; max-width: 280px;
+            border-radius: 28px;
+        }
+        .canvas-container.shape-laptop {
+            aspect-ratio: 16/10; border-radius: 8px;
+        }
+        .canvas-container.shape-car {
+            aspect-ratio: 5/2; max-width: 700px;
+            clip-path: url(#clip-car);
+        }
+        .canvas-container.shape-bike {
+            aspect-ratio: 5/3; max-width: 600px;
+            clip-path: url(#clip-bike);
+        }
+        .canvas-container.shape-helmet {
+            aspect-ratio: 1/1; max-width: 400px;
+            clip-path: url(#clip-helmet);
+        }
+        .canvas-container.shape-guitar {
+            aspect-ratio: 3/5; max-width: 400px;
+            clip-path: url(#clip-guitar);
+            transform: rotate(-25deg);
+            margin: 40px auto;
+        }
+        .canvas-container.shape-suitcase {
+            aspect-ratio: 3/4; max-width: 360px;
+            border-radius: 16px;
+        }
+        .canvas-container.shape-fridge {
+            aspect-ratio: 3/5; max-width: 320px;
+            border-radius: 12px;
+        }
+        .canvas-container.shape-door {
+            aspect-ratio: 2/5; max-width: 280px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG clip-path定義 -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <clipPath id="clip-skateboard" clipPathUnits="objectBoundingBox">
+                <path d="M 0.5 0 C 0.85 0, 1 0.03, 1 0.06 L 1 0.94 C 1 0.97, 0.85 1, 0.5 1 C 0.15 1, 0 0.97, 0 0.94 L 0 0.06 C 0 0.03, 0.15 0, 0.5 0 Z"/>
+            </clipPath>
+            <clipPath id="clip-helmet" clipPathUnits="objectBoundingBox">
+                <path d="M 0.5 0.02 C 0.8 0.02, 0.98 0.2, 0.98 0.45 C 0.98 0.65, 0.9 0.78, 0.82 0.85 L 0.95 0.98 L 0.05 0.98 L 0.18 0.85 C 0.1 0.78, 0.02 0.65, 0.02 0.45 C 0.02 0.2, 0.2 0.02, 0.5 0.02 Z"/>
+            </clipPath>
+            <clipPath id="clip-guitar" clipPathUnits="objectBoundingBox">
+                <!-- エレキギター: ヘッド→ネック→ボディ(ダブルカッタウェイ) -->
+                <path d="M 0.38 0 L 0.62 0 L 0.62 0.02 C 0.65 0.02, 0.68 0.03, 0.68 0.05 C 0.68 0.07, 0.62 0.08, 0.58 0.08 L 0.58 0.35 C 0.68 0.36, 0.78 0.38, 0.85 0.42 C 0.95 0.48, 1 0.56, 1 0.65 C 1 0.72, 0.96 0.78, 0.88 0.82 C 0.92 0.86, 0.95 0.91, 0.93 0.95 C 0.9 1, 0.78 1, 0.65 0.98 C 0.58 0.97, 0.53 0.97, 0.5 0.97 C 0.47 0.97, 0.42 0.97, 0.35 0.98 C 0.22 1, 0.1 1, 0.07 0.95 C 0.05 0.91, 0.08 0.86, 0.12 0.82 C 0.04 0.78, 0 0.72, 0 0.65 C 0 0.56, 0.05 0.48, 0.15 0.42 C 0.22 0.38, 0.32 0.36, 0.42 0.35 L 0.42 0.08 C 0.38 0.08, 0.32 0.07, 0.32 0.05 C 0.32 0.03, 0.35 0.02, 0.38 0.02 Z"/>
+            </clipPath>
+            <clipPath id="clip-bike" clipPathUnits="objectBoundingBox">
+                <!-- バイクタンク: 上部が丸く下部が平ら、前後がすぼまる -->
+                <path d="M 0.15 0.5 C 0.15 0.2, 0.25 0.05, 0.4 0.02 C 0.45 0.01, 0.55 0, 0.6 0.02 C 0.75 0.06, 0.88 0.18, 0.92 0.35 C 0.95 0.45, 0.95 0.55, 0.92 0.65 C 0.88 0.78, 0.8 0.88, 0.7 0.93 L 0.72 0.98 L 0.28 0.98 L 0.3 0.93 C 0.2 0.88, 0.15 0.75, 0.15 0.5 Z"/>
+            </clipPath>
+            <clipPath id="clip-car" clipPathUnits="objectBoundingBox">
+                <!-- 車サイドビュー: ボンネット→ルーフ→トランク、下部ホイールアーチ -->
+                <path d="M 0.02 0.7 L 0.02 0.55 C 0.02 0.5, 0.05 0.45, 0.1 0.42 L 0.2 0.38 L 0.25 0.15 C 0.27 0.08, 0.32 0.03, 0.38 0.02 L 0.7 0.02 C 0.76 0.03, 0.8 0.08, 0.82 0.15 L 0.85 0.38 L 0.92 0.42 C 0.96 0.45, 0.98 0.5, 0.98 0.55 L 0.98 0.7 C 0.98 0.75, 0.96 0.78, 0.93 0.78 L 0.85 0.78 C 0.85 0.88, 0.78 0.98, 0.7 0.98 C 0.62 0.98, 0.55 0.88, 0.55 0.78 L 0.45 0.78 C 0.45 0.88, 0.38 0.98, 0.3 0.98 C 0.22 0.98, 0.15 0.88, 0.15 0.78 L 0.07 0.78 C 0.04 0.78, 0.02 0.75, 0.02 0.7 Z"/>
+            </clipPath>
+        </defs>
+    </svg>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">SB</div>
+            <div>
+                <h1 class="title">STICKER<span class="title-accent">BOMB</span></h1>
+                <p class="subtitle">SIMULATOR // v3.1</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="wizard-trigger" id="wizardTrigger">LET'S BOMB!</button>
+        </div>
+    </header>
+
+    <!-- ウィザードオーバーレイ -->
+    <div class="wizard-overlay hidden" id="wizardOverlay">
+        <div class="wizard-modal" id="wizardModal">
+            <!-- STEP 1: 画像選択 -->
+            <div class="wizard-step" id="wizStep1">
+                <div class="wizard-title">LET'S BOMB!</div>
+                <div class="wizard-sub">ステッカーにする画像を選ぼう</div>
+                <label class="wizard-upload">
+                    <input type="file" accept="image/*" multiple id="wizFileInput" style="display:none;">
+                    <div class="wizard-upload-icon">+</div>
+                    <div>タップして画像を選択</div>
+                    <div style="font-size:0.7rem;color:#737373;">複数OK</div>
+                </label>
+                <div class="wizard-preview" id="wizPreview"></div>
+                <button class="wizard-next" id="wizBombBtn" disabled>BOMB!</button>
+                <button class="wizard-close-link" id="wizClose1">閉じる</button>
+            </div>
+            <!-- STEP 2: 結果 -->
+            <div class="wizard-step hidden" id="wizStep2">
+                <div class="wizard-title">NICE BOMB!</div>
+                <div class="wizard-sub">もっと盛る？</div>
+                <button class="wizard-next" id="wizAddMore">+ 追加BOMB!</button>
+                <button class="wizard-next wizard-save" id="wizSave">PNG保存</button>
+                <button class="wizard-close-link" id="wizClose2">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <!-- アップロード -->
+            <section class="section">
+                <h2 class="section-title">01 // STICKERS</h2>
+                <label class="upload-area">
+                    <input type="file" accept="image/*" multiple id="fileInput">
+                    <div>画像をアップロード</div>
+                    <div class="upload-subtitle">複数選択OK / PNG推奨</div>
+                </label>
+                <div class="upload-summary"><span id="uploadCount">0</span> 種類アップロード済み</div>
+                <div class="upload-grid" id="uploadGrid"></div>
+            </section>
+
+            <!-- BOMB -->
+            <section class="section">
+                <h2 class="section-title">BOMB!</h2>
+                <button class="bomb-btn" id="bombBtn" disabled>BOMB!</button>
+                <div class="action-grid">
+                    <button class="action-btn" id="addMoreBtn" disabled>+ 追加BOMB</button>
+                    <button class="action-btn danger" id="clearBtn" disabled>削除BOMB</button>
+                </div>
+                <div class="frequency-section">
+                    <h3 class="frequency-title">出現回数<br><span style="font-weight:400;font-size:0.625rem;color:#a3a3a3;">（1ステッカーあたり）</span></h3>
+                    <div class="dummy-intensity">
+                        <div class="intensity-slider" id="freqSlider" style="--value:3.3%;flex:1;"></div>
+                        <input type="number" id="freqInput" value="1" min="1" max="30" class="frequency-select" style="width:50px;">
+                        <span style="font-size:0.625rem;color:#737373;">回</span>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title">ステッカーサイズ</h3>
+                    <div class="size-align-controls">
+                        <label class="size-align-option">
+                            <input type="checkbox" id="alignHeight"><span>縦サイズを揃える</span>
+                        </label>
+                        <label class="size-align-option">
+                            <input type="checkbox" id="alignWidth"><span>横サイズを揃える</span>
+                        </label>
+                    </div>
+                    <div style="margin-top:0.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span class="intensity-label">最大サイズ</span>
+                            <div class="intensity-slider" id="maxSizeSlider" style="--value:50%"></div>
+                            <input type="number" id="maxSizeInput" value="30" min="5" max="80" class="frequency-select" style="width:50px;">
+                            <span style="font-size:0.625rem;color:#737373;">%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- キャンバス設定 -->
+            <section class="section">
+                <h2 class="section-title">02 // CANVAS & DUMMY</h2>
+                <h3 class="frequency-title" style="margin-bottom:0.5rem;">シェイプ</h3>
+                <div class="canvas-mode-grid">
+                    <button class="canvas-mode-btn active" data-shape="flat">平面</button>
+                    <button class="canvas-mode-btn" data-shape="skateboard">スケボー</button>
+                    <button class="canvas-mode-btn" data-shape="phone">スマホ</button>
+                    <button class="canvas-mode-btn" data-shape="laptop">パソコン</button>
+                    <button class="canvas-mode-btn" data-shape="car">車</button>
+                    <button class="canvas-mode-btn" data-shape="bike">バイク</button>
+                    <button class="canvas-mode-btn" data-shape="helmet">ヘルメット</button>
+                    <button class="canvas-mode-btn" data-shape="guitar">ギター</button>
+                    <button class="canvas-mode-btn" data-shape="suitcase">スーツケース</button>
+                    <button class="canvas-mode-btn" data-shape="fridge">冷蔵庫</button>
+                    <button class="canvas-mode-btn" data-shape="door">ドア</button>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">サイズ</h3>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <label class="frequency-label" style="flex:1;">
+                            <span>幅:</span>
+                            <input type="number" id="canvasW" value="900" min="100" max="4000" step="50" class="frequency-select" style="width:70px;">
+                        </label>
+                        <span style="color:#737373;">x</span>
+                        <label class="frequency-label" style="flex:1;">
+                            <span>高さ:</span>
+                            <input type="number" id="canvasH" value="600" min="100" max="4000" step="50" class="frequency-select" style="width:70px;">
+                        </label>
+                    </div>
+                    <div style="margin-top:0.5rem;display:flex;gap:0.25rem;flex-wrap:wrap;" id="sizePresets">
+                        <button class="canvas-mode-btn active" data-w="900" data-h="600" style="padding:0.25rem 0.4rem;">3:2</button>
+                        <button class="canvas-mode-btn" data-w="1920" data-h="1080" style="padding:0.25rem 0.4rem;">FHD</button>
+                        <button class="canvas-mode-btn" data-w="1080" data-h="1080" style="padding:0.25rem 0.4rem;">1:1</button>
+                        <button class="canvas-mode-btn" data-w="1080" data-h="1920" style="padding:0.25rem 0.4rem;">9:16</button>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">背景色</h3>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <input type="color" id="bgColor" value="#d4d4d4" style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;">
+                        <div style="display:flex;gap:0.25rem;flex-wrap:wrap;" id="bgPresets">
+                            <button class="canvas-mode-btn active" data-bg="#d4d4d4" style="padding:0.25rem 0.4rem;">グレー</button>
+                            <button class="canvas-mode-btn" data-bg="#ffffff" style="padding:0.25rem 0.4rem;">白</button>
+                            <button class="canvas-mode-btn" data-bg="#000000" style="padding:0.25rem 0.4rem;">黒</button>
+                            <button class="canvas-mode-btn" data-bg="#1a1a2e" style="padding:0.25rem 0.4rem;">ダーク</button>
+                            <button class="canvas-mode-btn" data-bg="transparent" style="padding:0.25rem 0.4rem;">透明</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">ダミーボム</h3>
+                    <div class="dummy-toggle">
+                        <div class="dummy-checkbox" id="dummyToggle"></div>
+                        <label class="dummy-label">ダミーボム（背景）</label>
+                    </div>
+                    <div class="dummy-slide" id="dummySlideSection">
+                        <div class="dummy-slide-inner">
+                            <div class="dummy-intensity">
+                                <span class="intensity-label" style="width:3em;flex-shrink:0;">密度</span>
+                                <div class="intensity-slider" id="intensitySlider" style="--value:50%;flex:1;"></div>
+                                <input type="number" id="intensityInput" value="50" min="0" max="100" class="frequency-select" style="width:50px;">
+                                <span style="font-size:0.625rem;color:#737373;">%</span>
+                            </div>
+                            <div class="dummy-intensity" style="margin-top:0.5rem;">
+                                <span class="intensity-label" style="width:3em;flex-shrink:0;">サイズ</span>
+                                <div class="intensity-slider" id="dummySizeSlider" style="--value:50%;flex:1;"></div>
+                                <input type="number" id="dummySizeInput" value="10" min="3" max="50" class="frequency-select" style="width:50px;">
+                                <span style="font-size:0.625rem;color:#737373;">%</span>
+                            </div>
+                            <button class="bomb-btn" id="dummyBombBtn" style="margin-top:0.5rem;font-size:1rem;padding:0.75rem;">DUMMY BOMB!</button>
+                            <div class="action-grid">
+                                <button class="action-btn" id="addDummyBtn">+ 追加BOMB</button>
+                                <button class="action-btn danger" id="clearDummyBtn">削除BOMB</button>
+                            </div>
+                            <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                                <h4 class="dummy-color-title">カラーモード</h4>
+                                <div class="color-mode-grid">
+                                    <button class="color-mode-btn active" data-colormode="color">カラー</button>
+                                    <button class="color-mode-btn" data-colormode="grayscale">白黒</button>
+                                    <button class="color-mode-btn" data-colormode="monochrome">単色</button>
+                                </div>
+                                <div class="monochrome-picker hidden" id="monochromePicker">
+                                    <label class="monochrome-label">
+                                        <span>色選択:</span>
+                                        <input type="color" id="monochromeColor" value="#facc15">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- モード -->
+            <section class="section">
+                <h2 class="section-title">03 // MODE</h2>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" data-mode="gichigichi">
+                        <div class="mode-title">ぎちぎち</div>
+                        <div class="mode-desc">本場仕様。向きバラバラ・はみ出し多め・高密度</div>
+                    </button>
+                    <button class="mode-btn" data-mode="naraberu">
+                        <div class="mode-title">ならべる</div>
+                        <div class="mode-desc">重ならないように等間隔で配置。整列好きに</div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ターゲット -->
+            <section class="section">
+                <h2 class="section-title">04 // TARGET</h2>
+                <div class="target-grid">
+                    <button class="target-btn active" data-target="all">全体</button>
+                    <button class="target-btn" data-target="center">中心</button>
+                    <button class="target-btn" data-target="custom">その他</button>
+                </div>
+                <div class="dummy-slide" id="customTargetSlide">
+                    <div class="dummy-slide-inner">
+                        <div class="custom-target-hint">
+                            <span style="color:#facc15;font-size:0.75rem;">クリック: その地点を中心にBOMB</span><br>
+                            <span style="color:#facc15;font-size:0.75rem;">ドラッグ: 範囲を指定してBOMB</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 書き出し・保存 -->
+            <section class="section">
+                <h2 class="section-title">05 // EXPORT & SAVE</h2>
+                <div class="export-grid">
+                    <button class="export-btn primary" id="exportPng" disabled>PNG書き出し</button>
+                    <button class="export-btn" id="exportJpg" disabled>JPG書き出し</button>
+                    <button class="export-btn" id="saveProject">プロジェクト保存</button>
+                    <button class="export-btn" id="loadProject">プロジェクト読み込み</button>
+                    <input type="file" id="loadProjectInput" accept=".json" style="display:none">
+                </div>
+            </section>
+        </aside>
+
+        <main class="canvas-section">
+            <div class="canvas-header">
+                <div class="canvas-info">
+                    <div class="canvas-stats">CANVAS // <span id="stickerCount">0</span> stickers</div>
+                </div>
+                <div class="canvas-wrapper">
+                    <div class="canvas-container" id="canvas">
+                        <div class="empty-canvas" id="emptyCanvas">
+                            <div>
+                                <div class="icon">BOMB</div>
+                                <div>画像をアップロードして BOMB!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls" id="controls">
+                <div class="controls-header">
+                    <div class="controls-title">SELECTED STICKER</div>
+                    <div class="close-btn" id="closeControls">&#x2715;</div>
+                </div>
+                <div class="selected-info" id="selectedInfo" style="margin-bottom:0.5rem;"></div>
+                <div class="controls-grid">
+                    <button class="control-btn" id="toFront"><span>最前面</span></button>
+                    <button class="control-btn" id="forward"><span>1つ上</span></button>
+                    <button class="control-btn" id="backward"><span>1つ下</span></button>
+                    <button class="control-btn" id="toBack"><span>最背面</span></button>
+                    <button class="control-btn" id="duplicate"><span>複製</span></button>
+                    <button class="control-btn danger" id="deleteSticker"><span>削除</span></button>
+                </div>
+                <div style="margin-top:0.75rem;font-size:0.75rem;color:#737373;">
+                    右下の黄色でサイズ変更、上の丸で回転、本体ドラッグで移動、Delete/Backspaceで削除
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 出現回数ポップアップ -->
+    <!-- モバイルフッター -->
+    <div class="mobile-panel" id="mobilePanel"></div>
+    <nav class="mobile-footer">
+        <div class="mobile-footer-scroll">
+            <button class="mf-btn action" id="mfBomb" disabled>BOMB!</button>
+            <button class="mf-btn action" id="mfAdd" disabled>+追加</button>
+            <button class="mf-btn action danger" id="mfClear" disabled>削除</button>
+            <button class="mf-btn menu" data-panel="bomb" style="font-size:1rem;padding:6px 10px;">&#x2699;</button>
+            <span style="width:1px;background:#facc15;flex-shrink:0;margin:2px 4px;opacity:0.4;"></span>
+            <button class="mf-btn menu" data-panel="01">01</button>
+            <button class="mf-btn menu" data-panel="02">02</button>
+            <button class="mf-btn menu" data-panel="03">03</button>
+            <button class="mf-btn menu" data-panel="04">04</button>
+            <button class="mf-btn menu" data-panel="05">05</button>
+        </div>
+    </nav>
+
+    <div class="popup-overlay hidden" id="popupOverlay"></div>
+    <div class="frequency-popup hidden" id="frequencyPopup">
+        <h3>出現回数</h3>
+        <div class="popup-controls">
+            <button id="decreaseFreq">-</button>
+            <div class="frequency-display"><span id="currentFreq">1</span>回</div>
+            <button id="increaseFreq">+</button>
+        </div>
+        <div class="popup-buttons">
+            <button class="popup-ok" id="confirmFreq">OK</button>
+            <button class="popup-cancel" id="cancelFreq">キャンセル</button>
+        </div>
+    </div>
+
+    <script>
+        // === 状態管理（IDは全て文字列） ===
+        let uploadedImages = [];
+        let imageFrequencies = {};
+        let stickers = [];
+        let selectedId = null;
+        let mode = 'gichigichi';
+        let targetArea = 'all';
+        let customTarget = null;
+        let customDragRect = null; // { x, y, w, h }
+        let customDragStart = null; // ドラッグ中の開始点
+        let canvasShape = 'flat';
+        let bgColor = '#d4d4d4';
+        let dummyEnabled = false;
+        let dummyIntensityVal = 50;
+        let dummyColorMode = 'color';
+        let monochromeColor = '#facc15';
+        let alignHeight = false;
+        let alignWidth = false;
+        let dragState = null;
+        // デフォルトキャンバスサイズを画面の85%で計算
+        function calcDefaultCanvasSize() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            // PC: サイドバー分を引いて横幅ベース、モバイル: 画面そのまま
+            const isMobile = vw < 1024;
+            const w = isMobile ? Math.round(vw * 0.9) : Math.round((vw - 320) * 0.85);
+            const h = Math.round(vh * 0.75);
+            return { w: Math.max(300, w), h: Math.max(300, h) };
+        }
+        const defaultSize = calcDefaultCanvasSize();
+        const canvasSize = { w: defaultSize.w, h: defaultSize.h };
+        let editingImageId = null;
+        let idCounter = 0;
+
+        function genId() { return 'id_' + (++idCounter) + '_' + Date.now(); }
+
+        // ダミーボム素材
+        const dummyDefs = [
+            { w:60,h:24,bg:'#fff',stroke:'#000',text:'JDX',tc:'#000' },
+            { w:70,h:20,bg:'#22c55e',text:'ROCKSTAR',tc:'#000' },
+            { w:40,h:40,bg:'#dc2626',text:'DC',tc:'#fff',circle:true },
+            { w:50,h:30,bg:'#000',text:'STREET',tc:'#fff' },
+            { w:50,h:20,bg:'#ff6600',text:'PRO',tc:'#000' },
+            { w:60,h:24,bg:'#0077ff',text:'BLUE',tc:'#fff' },
+            { w:40,h:40,bg:'#ffd700',text:'Z',tc:'#000' },
+            { w:50,h:20,bg:'#ff00ff',text:'PINK',tc:'#000' },
+            { w:50,h:30,bg:'#8b00ff',text:'MDI',tc:'#fff' },
+            { w:60,h:24,bg:'#fff',stroke:'#000',text:'WHITE',tc:'#000' },
+            { w:40,h:40,bg:'#00ff80',text:'G',tc:'#000',circle:true },
+            { w:55,h:25,bg:'#f73174',text:'!WARN',tc:'#fff' },
+            { w:45,h:20,bg:'#794b95',text:'ROCK',tc:'#fff' },
+            { w:35,h:35,bg:'#ea581c',text:'TECH',tc:'#fff' },
+            { w:60,h:20,bg:'#facc15',text:'SKATER',tc:'#000' },
+        ];
+        const dummyStickers = dummyDefs.map(d => {
+            let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'+d.w+'" height="'+d.h+'" viewBox="0 0 '+d.w+' '+d.h+'">';
+            if (d.circle) svg += '<circle cx="'+(d.w/2)+'" cy="'+(d.h/2)+'" r="'+(d.w/2)+'" fill="'+d.bg+'"'+(d.stroke?' stroke="'+d.stroke+'" stroke-width="2"':'')+'/>';
+            else svg += '<rect width="'+d.w+'" height="'+d.h+'" fill="'+d.bg+'"'+(d.stroke?' stroke="'+d.stroke+'" stroke-width="2"':'')+' rx="3"/>';
+            const fs = Math.min(d.w*0.28, d.h*0.55);
+            svg += '<text x="'+(d.w/2)+'" y="'+(d.h/2+fs*0.35)+'" font-family="Arial,sans-serif" font-size="'+fs+'" font-weight="bold" text-anchor="middle" fill="'+d.tc+'">'+d.text+'</text></svg>';
+            return 'data:image/svg+xml;base64,' + btoa(svg);
+        });
+
+        // DOM
+        const $ = id => document.getElementById(id);
+        const canvas = $('canvas');
+        const emptyCanvas = $('emptyCanvas');
+
+        function updateUI() {
+            $('uploadCount').textContent = uploadedImages.length;
+            $('stickerCount').textContent = stickers.length;
+            const hasImg = uploadedImages.length > 0;
+            const hasStk = stickers.length > 0;
+            $('bombBtn').disabled = !hasImg;
+            $('addMoreBtn').disabled = !hasImg;
+            $('clearBtn').disabled = !hasStk;
+            $('exportPng').disabled = !hasStk;
+            $('exportJpg').disabled = !hasStk;
+            emptyCanvas.style.display = hasStk ? 'none' : 'flex';
+            const sel = stickers.find(s => s.id === selectedId);
+            if (sel) {
+                $('selectedInfo').textContent = Math.round(sel.w) + ' x ' + Math.round(sel.h) + 'px / ' + Math.round(sel.rotation) + 'deg';
+                $('controls').classList.add('show');
+            } else {
+                $('selectedInfo').textContent = '';
+                $('controls').classList.remove('show');
+            }
+        }
+
+        // アップロード
+        $('fileInput').addEventListener('change', e => {
+            Array.from(e.target.files || []).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const id = genId();
+                        uploadedImages.push({ id, src: ev.target.result, naturalW: img.naturalWidth, naturalH: img.naturalHeight });
+                        imageFrequencies[id] = parseInt($('freqInput').value);
+                        renderUploadGrid();
+                        updateUI();
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        });
+
+        function renderUploadGrid() {
+            const grid = $('uploadGrid');
+            grid.innerHTML = '';
+            uploadedImages.forEach(img => {
+                const canvasCount = stickers.filter(s => s.srcId === img.id && !s.isDummy).length;
+                const item = document.createElement('div');
+                item.className = 'upload-item';
+                item.innerHTML =
+                    '<img src="' + img.src + '" alt="">' +
+                    '<div class="frequency-badge" data-imgid="' + img.id + '">' + canvasCount + '</div>' +
+                    '<div class="control-buttons">' +
+                    '<button class="thumb-add-btn" data-imgid="' + img.id + '">+</button>' +
+                    '<button class="thumb-del-btn" data-imgid="' + img.id + '">&times;</button>' +
+                    '</div>';
+                grid.appendChild(item);
+            });
+        }
+
+        $('uploadGrid').addEventListener('click', e => {
+            e.stopPropagation();
+            const imgid = e.target.dataset.imgid;
+            if (!imgid) return;
+
+            if (e.target.classList.contains('frequency-badge')) {
+                editingImageId = imgid;
+                $('currentFreq').textContent = stickers.filter(s => s.srcId === imgid && !s.isDummy).length;
+                $('popupOverlay').classList.remove('hidden');
+                $('frequencyPopup').classList.remove('hidden');
+            } else if (e.target.classList.contains('thumb-add-btn')) {
+                const imgData = uploadedImages.find(i => i.id === imgid);
+                if (imgData) placeSingleSticker(imgData);
+            } else if (e.target.classList.contains('thumb-del-btn')) {
+                uploadedImages = uploadedImages.filter(i => i.id !== imgid);
+                delete imageFrequencies[imgid];
+                renderUploadGrid();
+                updateUI();
+            }
+        });
+
+        // 出現回数ポップアップ
+        $('decreaseFreq').addEventListener('click', () => {
+            const c = parseInt($('currentFreq').textContent);
+            if (c > 0) $('currentFreq').textContent = c - 1;
+        });
+        $('increaseFreq').addEventListener('click', () => {
+            const c = parseInt($('currentFreq').textContent);
+            if (c < 20) $('currentFreq').textContent = c + 1;
+        });
+        $('confirmFreq').addEventListener('click', () => {
+            if (editingImageId) {
+                const newFreq = parseInt($('currentFreq').textContent);
+                const oldFreq = imageFrequencies[editingImageId] || 1;
+                imageFrequencies[editingImageId] = newFreq;
+                syncStickersToFrequency(editingImageId, oldFreq, newFreq);
+                renderUploadGrid();
+                renderCanvas();
+                updateUI();
+            }
+            closePopup();
+        });
+        $('cancelFreq').addEventListener('click', closePopup);
+        $('popupOverlay').addEventListener('click', closePopup);
+        function closePopup() {
+            $('popupOverlay').classList.add('hidden');
+            $('frequencyPopup').classList.add('hidden');
+            editingImageId = null;
+        }
+
+        // 出現回数変更時にキャンバスと同期
+        function syncStickersToFrequency(imgId, oldFreq, newFreq) {
+            const imgData = uploadedImages.find(i => i.id === imgId);
+            if (!imgData) return;
+            const existing = stickers.filter(s => s.srcId === imgId && !s.isDummy);
+            const currentCount = existing.length;
+            if (newFreq > currentCount) {
+                for (let i = 0; i < newFreq - currentCount; i++) {
+                    const size = stickerSize();
+                    const aspect = imgData.naturalH / imgData.naturalW;
+                    const pos = getTargetPosition(size, 0.2);
+                    stickers.push({
+                        id: genId(), srcId: imgData.id, src: imgData.src,
+                        x: pos.x, y: pos.y, w: size, h: size * aspect,
+                        rotation: mode === 'gichigichi' ? Math.random() * 360 : (Math.random() - 0.5) * 6,
+                        isDummy: false,
+                    });
+                }
+            } else if (newFreq < currentCount) {
+                let toRemove = currentCount - newFreq;
+                for (let i = stickers.length - 1; i >= 0 && toRemove > 0; i--) {
+                    if (stickers[i].srcId === imgId && !stickers[i].isDummy) {
+                        stickers.splice(i, 1);
+                        toRemove--;
+                    }
+                }
+            }
+        }
+
+        // サイズ統一
+        function applyAlign() {
+            if (!alignHeight && !alignWidth) return;
+            if (stickers.length === 0) return;
+            const short = Math.min(canvasSize.w, canvasSize.h);
+            const targetSize = short * (maxSizePct / 100) * 0.6;
+            stickers.forEach(s => {
+                const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+                const aspect = s.h / s.w;
+                if (alignHeight) {
+                    s.h = targetSize;
+                    s.w = targetSize / aspect;
+                } else {
+                    s.w = targetSize;
+                    s.h = targetSize * aspect;
+                }
+                s.x = cx - s.w / 2;
+                s.y = cy - s.h / 2;
+            });
+            renderCanvas();
+        }
+
+        $('alignHeight').addEventListener('change', e => {
+            alignHeight = e.target.checked;
+            if (alignHeight) { alignWidth = false; $('alignWidth').checked = false; }
+            applyAlign();
+        });
+        $('alignWidth').addEventListener('change', e => {
+            alignWidth = e.target.checked;
+            if (alignWidth) { alignHeight = false; $('alignHeight').checked = false; }
+            applyAlign();
+        });
+
+        // === 汎用スライダードラッグ管理（mouse+touch両対応） ===
+        let activeSlider = null;
+        let activeSliderFn = null;
+        function getClientX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+        document.addEventListener('mousemove', e => { if (activeSlider) activeSliderFn(e); });
+        document.addEventListener('mouseup', () => { activeSlider = null; activeSliderFn = null; });
+        document.addEventListener('touchmove', e => { if (activeSlider) { e.preventDefault(); activeSliderFn(e); } }, { passive: false });
+        document.addEventListener('touchend', () => { activeSlider = null; activeSliderFn = null; });
+
+        function bindSlider(el, min, max, onUpdate) {
+            function startDrag(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                activeSlider = el;
+                activeSliderFn = ev => {
+                    const r = el.getBoundingClientRect();
+                    const pct = Math.max(min, Math.min(max, Math.round((getClientX(ev) - r.left) / r.width * max)));
+                    onUpdate(pct);
+                };
+                activeSliderFn(e);
+            }
+            // 重複防止: 古いリスナーを除去してから追加
+            if (el._sliderMouse) el.removeEventListener('mousedown', el._sliderMouse);
+            if (el._sliderTouch) el.removeEventListener('touchstart', el._sliderTouch);
+            el._sliderMouse = startDrag;
+            el._sliderTouch = startDrag;
+            el.addEventListener('mousedown', startDrag);
+            el.addEventListener('touchstart', startDrag, { passive: false });
+        }
+
+        // 出現回数スライダー
+        const freqSlider = $('freqSlider');
+        bindSlider(freqSlider, 1, 30, pct => {
+            $('freqInput').value = pct;
+            freqSlider.style.setProperty('--value', (pct / 30 * 100) + '%');
+        });
+        $('freqInput').addEventListener('change', e => {
+            const v = Math.max(1, Math.min(30, parseInt(e.target.value) || 1));
+            e.target.value = v;
+            freqSlider.style.setProperty('--value', (v / 30 * 100) + '%');
+        });
+
+        // ステッカー最大サイズ
+        const maxSizeSlider = $('maxSizeSlider');
+        bindSlider(maxSizeSlider, 5, 80, pct => {
+            const old = maxSizePct;
+            maxSizePct = pct;
+            maxSizeSlider.style.setProperty('--value', (pct / 80 * 100) + '%');
+            $('maxSizeInput').value = pct;
+            if (stickers.length > 0) resizeAllStickers(old, pct);
+            prevMaxSizePct = pct;
+        });
+        $('maxSizeInput').addEventListener('change', e => {
+            const old = maxSizePct;
+            maxSizePct = Math.max(5, Math.min(80, parseInt(e.target.value) || 30));
+            e.target.value = maxSizePct;
+            maxSizeSlider.style.setProperty('--value', (maxSizePct / 80 * 100) + '%');
+            if (stickers.length > 0) resizeAllStickers(old, maxSizePct);
+            prevMaxSizePct = maxSizePct;
+        });
+
+        // ダミーサイズ
+        const dummySizeSlider = $('dummySizeSlider');
+        bindSlider(dummySizeSlider, 3, 50, pct => {
+            const old = dummySizePct;
+            dummySizePct = pct;
+            dummySizeSlider.style.setProperty('--value', (pct / 50 * 100) + '%');
+            $('dummySizeInput').value = pct;
+            resizeDummyBg(old, pct);
+            prevDummySizePct = pct;
+        });
+        $('dummySizeInput').addEventListener('change', e => {
+            const old = dummySizePct;
+            dummySizePct = Math.max(3, Math.min(50, parseInt(e.target.value) || 10));
+            e.target.value = dummySizePct;
+            dummySizeSlider.style.setProperty('--value', (dummySizePct / 50 * 100) + '%');
+            resizeDummyBg(old, dummySizePct);
+            prevDummySizePct = dummySizePct;
+        });
+
+        // 個別配置
+        function placeSingleSticker(imgData) {
+            let size = stickerSize();
+            const aspect = imgData.naturalH / imgData.naturalW;
+            if (alignHeight && stickers.length > 0) {
+                size = stickerSizeAligned() / aspect;
+            }
+            if (alignWidth && stickers.length > 0) {
+                size = stickers.reduce((s, st) => s + st.w, 0) / stickers.length;
+            }
+            stickers.push({
+                id: genId(), srcId: imgData.id, src: imgData.src,
+                x: Math.random() * (canvasSize.w - size),
+                y: Math.random() * (canvasSize.h - size * aspect),
+                w: size, h: size * aspect,
+                rotation: (Math.random() - 0.5) * 30, isDummy: false,
+            });
+            renderCanvas(); updateUI();
+        }
+
+        // ダミーボムはオフスクリーンcanvasで1枚の画像にプリレンダリング
+        let dummyBgDataUrl = null;
+        let dummyImgCache = {};
+
+        function preloadDummyImages() {
+            return Promise.all(dummyStickers.map((src, i) => {
+                if (dummyImgCache[i]) return Promise.resolve();
+                return new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = () => { dummyImgCache[i] = img; resolve(); };
+                    img.onerror = resolve;
+                    img.src = src;
+                });
+            }));
+        }
+
+        function renderDummyLayer(count) {
+            const off = document.createElement('canvas');
+            off.width = canvasSize.w; off.height = canvasSize.h;
+            const ctx = off.getContext('2d');
+            const short = Math.min(canvasSize.w, canvasSize.h);
+            const maxSize = short * (dummySizePct / 100);
+            const minSize = maxSize * 0.3;
+            const keys = Object.keys(dummyImgCache);
+            if (keys.length === 0) return;
+
+            for (let i = 0; i < count; i++) {
+                const img = dummyImgCache[keys[Math.floor(Math.random() * keys.length)]];
+                if (!img) continue;
+                const size = minSize + Math.random() * (maxSize - minSize);
+                const x = -size * 0.5 + Math.random() * (canvasSize.w + size);
+                const y = -size * 0.5 + Math.random() * (canvasSize.h + size);
+                const rot = Math.random() * 360;
+                ctx.save();
+                ctx.globalAlpha = 0.4;
+                ctx.translate(x + size/2, y + size/2);
+                ctx.rotate(rot * Math.PI / 180);
+                if (dummyColorMode === 'grayscale') ctx.filter = 'grayscale(100%) blur(1px)';
+                else if (dummyColorMode === 'monochrome') ctx.filter = 'grayscale(100%) sepia(100%) hue-rotate(' + hueFrom(monochromeColor) + 'deg) saturate(2) blur(1px)';
+                else ctx.filter = 'blur(0.5px)';
+                ctx.drawImage(img, -size/2, -size/2, size, size);
+                ctx.restore();
+            }
+            return off.toDataURL('image/png');
+        }
+
+        function getDummyCount() {
+            return Math.floor((dummyIntensityVal / 100) * (dummyIntensityVal / 100) * 800);
+        }
+
+        function generateDummyBg() {
+            const count = getDummyCount();
+            if (count === 0) { dummyBgDataUrl = null; return Promise.resolve(); }
+            return preloadDummyImages().then(() => {
+                dummyBgDataUrl = renderDummyLayer(count);
+            });
+        }
+
+        // DUMMY BOMB!（演出付き）
+        function dummyBomb() {
+            if (!dummyEnabled) return;
+            const count = getDummyCount();
+            if (count === 0) return;
+            playBombSfx();
+            shakeCanvas(true);
+            preloadDummyImages().then(() => {
+                dummyBgDataUrl = renderDummyLayer(count);
+                renderCanvas(); updateUI();
+            });
+        }
+
+        // ダミー追加BOMB（演出付き）
+        function addDummyBomb() {
+            if (!dummyEnabled) return;
+            const count = getDummyCount();
+            if (count === 0) return;
+            playBombSfx();
+            shakeCanvas(false);
+            preloadDummyImages().then(() => {
+                const newLayer = renderDummyLayer(count);
+                if (!dummyBgDataUrl) {
+                    dummyBgDataUrl = newLayer;
+                    renderCanvas(); updateUI();
+                } else {
+                    mergeDummyLayers(dummyBgDataUrl, newLayer).then(merged => {
+                        dummyBgDataUrl = merged;
+                        renderCanvas(); updateUI();
+                    });
+                }
+            });
+        }
+
+        // ダミー削除（爆弾演出付き）
+        function clearDummy() {
+            if (bombCountdownActive || !dummyBgDataUrl) return;
+            bombCountdown(() => {
+                dummyBgDataUrl = null;
+                renderCanvas(); updateUI();
+            }, $('clearDummyBtn'));
+        }
+
+        function mergeDummyLayers(base, overlay) {
+            return new Promise(resolve => {
+                const off = document.createElement('canvas');
+                off.width = canvasSize.w; off.height = canvasSize.h;
+                const ctx = off.getContext('2d');
+                const img1 = new Image();
+                img1.onload = () => {
+                    ctx.drawImage(img1, 0, 0);
+                    const img2 = new Image();
+                    img2.onload = () => {
+                        ctx.drawImage(img2, 0, 0);
+                        resolve(off.toDataURL('image/png'));
+                    };
+                    img2.src = overlay;
+                };
+                img1.src = base;
+            });
+        }
+
+        // BOMB
+        function bomb() {
+            if (uploadedImages.length === 0) return;
+            stickers.length = 0;
+
+            if (mode === 'gichigichi') bombGichigichi();
+            else bombNaraberu();
+            selectedId = null;
+            renderUploadGrid();
+            renderCanvas(); updateUI();
+        }
+
+        // 各画像を出現回数ぶんだけフラットに展開
+        function buildImageList() {
+            const list = [];
+            const freq = parseInt($('freqInput').value) || 1;
+            uploadedImages.forEach(img => {
+                for (let j = 0; j < freq; j++) list.push(img);
+            });
+            return list;
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // キャンバスサイズに応じたステッカーサイズ（短辺の12%〜30%）
+        let maxSizePct = 30; // 短辺に対する最大サイズ%
+        let prevMaxSizePct = 30;
+        let dummySizePct = 10; // ダミー 短辺に対する最大サイズ%
+        let prevDummySizePct = 10;
+
+        // 既存ステッカーを即時リサイズ（中心位置を保持）
+        function resizeAllStickers(oldPct, newPct) {
+            if (oldPct === 0 || newPct === 0) return;
+            const ratio = newPct / oldPct;
+            stickers.forEach(s => {
+                const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+                s.w *= ratio; s.h *= ratio;
+                s.x = cx - s.w / 2; s.y = cy - s.h / 2;
+            });
+            renderCanvas();
+        }
+
+        // ダミー背景をリサイズ再生成
+        function resizeDummyBg(oldPct, newPct) {
+            if (!dummyBgDataUrl || oldPct === 0 || newPct === 0) return;
+            // ダミーは画像1枚なので再生成が必要
+            const count = getDummyCount();
+            if (count === 0) return;
+            preloadDummyImages().then(() => {
+                dummyBgDataUrl = renderDummyLayer(count);
+                renderCanvas();
+            });
+        }
+
+        function stickerSize() {
+            const short = Math.min(canvasSize.w, canvasSize.h);
+            const maxS = short * (maxSizePct / 100);
+            const minS = maxS * 0.4;
+            return minS + Math.random() * (maxS - minS);
+        }
+        function stickerSizeAligned() {
+            const short = Math.min(canvasSize.w, canvasSize.h);
+            return short * (maxSizePct / 100) * 0.6;
+        }
+
+        function bombGichigichi() {
+            const list = shuffleArray(buildImageList());
+            list.forEach(src => {
+                let size = stickerSize();
+                const aspect = src.naturalH / src.naturalW;
+                if (alignHeight) size = stickerSizeAligned() / aspect;
+                if (alignWidth) size = stickerSizeAligned();
+                const pos = getTargetPosition(size, 0.35);
+                stickers.push({
+                    id: genId(), srcId: src.id, src: src.src,
+                    x: pos.x, y: pos.y, w: size, h: size * aspect,
+                    rotation: Math.random() * 360, isDummy: false,
+                });
+            });
+        }
+
+        function bombNaraberu() {
+            const list = shuffleArray(buildImageList());
+            const total = list.length;
+            if (total === 0) return;
+
+            // ターゲットエリアに応じた配置範囲を取得
+            let areaX = 0, areaY = 0, areaW = canvasSize.w, areaH = canvasSize.h;
+            if (targetArea === 'center') {
+                areaX = canvasSize.w * 0.2; areaY = canvasSize.h * 0.2;
+                areaW = canvasSize.w * 0.6; areaH = canvasSize.h * 0.6;
+            } else if (targetArea === 'custom') {
+                if (customDragRect && customDragRect.w > 10) {
+                    areaX = customDragRect.x; areaY = customDragRect.y;
+                    areaW = customDragRect.w; areaH = customDragRect.h;
+                } else if (customTarget) {
+                    const range = Math.min(canvasSize.w, canvasSize.h) * 0.5;
+                    areaX = Math.max(0, customTarget.x - range / 2);
+                    areaY = Math.max(0, customTarget.y - range / 2);
+                    areaW = Math.min(range, canvasSize.w - areaX);
+                    areaH = Math.min(range, canvasSize.h - areaY);
+                }
+            }
+
+            const cols = Math.max(1, Math.ceil(Math.sqrt(total * (areaW / areaH))));
+            const rows = Math.ceil(total / cols);
+            const cellW = areaW / cols;
+            const cellH = areaH / rows;
+            const baseSize = Math.min(cellW, cellH) * 0.85;
+
+            list.forEach((src, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const aspect = src.naturalH / src.naturalW;
+                let w = baseSize, h = baseSize * aspect;
+                if (h > baseSize) { h = baseSize; w = baseSize / aspect; }
+                if (alignHeight) { h = baseSize * 0.8; w = h / aspect; }
+                if (alignWidth) { w = baseSize * 0.8; h = w * aspect; }
+                const cx = areaX + col * cellW + cellW / 2;
+                const cy = areaY + row * cellH + cellH / 2;
+                stickers.push({
+                    id: genId(), srcId: src.id, src: src.src,
+                    x: cx - w / 2, y: cy - h / 2, w, h,
+                    rotation: (Math.random() - 0.5) * 6, isDummy: false,
+                });
+            });
+        }
+
+        function addMore() {
+            if (uploadedImages.length === 0) return;
+            const list = shuffleArray(buildImageList());
+            const userStickers = stickers.filter(s => !s.isDummy);
+            const hasExisting = userStickers.length > 0;
+            const avgW = hasExisting
+                ? userStickers.reduce((s, st) => s + st.w, 0) / userStickers.length
+                : 0;
+            list.forEach(src => {
+                let size;
+                if (hasExisting) {
+                    const v = avgW * 0.15;
+                    size = avgW - v + Math.random() * v * 2;
+                } else {
+                    size = stickerSize();
+                }
+                const aspect = src.naturalH / src.naturalW;
+                if (alignHeight) size = stickerSizeAligned() / aspect;
+                if (alignWidth) size = stickerSizeAligned();
+                const pos = getTargetPosition(size, mode === 'gichigichi' ? 0.35 : 0.05);
+                const rotation = mode === 'gichigichi' ? Math.random() * 360 : (Math.random() - 0.5) * 6;
+                stickers.push({
+                    id: genId(), srcId: src.id, src: src.src,
+                    x: pos.x, y: pos.y, w: size, h: size * aspect,
+                    rotation, isDummy: false,
+                });
+            });
+            renderUploadGrid();
+            renderCanvas(); updateUI();
+        }
+
+        function getTargetPosition(size, overflow) {
+            const op = size * overflow;
+            switch (targetArea) {
+                case 'center':
+                    return {
+                        x: canvasSize.w * 0.3 + Math.random() * (canvasSize.w * 0.4 - size),
+                        y: canvasSize.h * 0.3 + Math.random() * (canvasSize.h * 0.4 - size)
+                    };
+                case 'custom':
+                    if (customDragRect && customDragRect.w > 10) {
+                        // ドラッグ範囲内にランダム配置
+                        return {
+                            x: customDragRect.x + Math.random() * Math.max(0, customDragRect.w - size),
+                            y: customDragRect.y + Math.random() * Math.max(0, customDragRect.h - size)
+                        };
+                    }
+                    if (customTarget) {
+                        const r = 120;
+                        return {
+                            x: Math.max(-op, Math.min(canvasSize.w + op - size, customTarget.x - r/2 + Math.random() * r)),
+                            y: Math.max(-op, Math.min(canvasSize.h + op - size, customTarget.y - r/2 + Math.random() * r))
+                        };
+                    }
+                    return { x: canvasSize.w * 0.35, y: canvasSize.h * 0.35 };
+                default:
+                    return {
+                        x: -op + Math.random() * (canvasSize.w + op * 2 - size),
+                        y: -op + Math.random() * (canvasSize.h + op * 2 - size)
+                    };
+            }
+        }
+
+        // 爆発エフェクト共通
+        function doExplosion(onExplode) {
+            playExplosionSfx();
+            shakeCanvas(true);
+            const flash = document.createElement('div');
+            flash.className = 'explosion-flash';
+            canvas.appendChild(flash);
+            const exp = document.createElement('div');
+            exp.className = 'explosion';
+            exp.innerHTML = '<div class="explosion-ring r1"></div><div class="explosion-ring r2"></div><div class="explosion-ring r3"></div>';
+            canvas.appendChild(exp);
+            const burst = document.createElement('div');
+            burst.className = 'bomb-burst-text';
+            burst.innerHTML = '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">' +
+                '<polygon points="160,5 185,35 220,15 210,50 255,40 230,70 270,75 235,95 265,120 225,115 235,155 195,130 175,165 160,130 145,165 125,130 85,155 95,115 55,120 85,95 50,75 90,70 65,40 110,50 100,15 135,35" fill="#facc15" stroke="#0a0a0a" stroke-width="3" stroke-linejoin="round"/>' +
+                '<text x="160" y="95" text-anchor="middle" dominant-baseline="central" font-family="Impact,Arial Black,sans-serif" font-size="52" font-weight="900" fill="#0a0a0a" stroke="#fff" stroke-width="1">BOMB!!</text></svg>';
+            canvas.appendChild(burst);
+            setTimeout(onExplode, 100);
+            setTimeout(() => { burst.classList.add('fade-out'); }, 450);
+            setTimeout(() => { flash.remove(); exp.remove(); burst.remove(); }, 700);
+        }
+
+        // カウントダウン爆弾（タップ or ボタンでキャンセル可能）
+        let bombCountdownActive = false;
+
+        function bombCountdown(onExplode, triggerBtn) {
+            if (bombCountdownActive) return;
+            bombCountdownActive = true;
+            let cancelled = false;
+            let origBtnText = '';
+
+            // ボタンをSTOP!!に変更
+            if (triggerBtn) {
+                origBtnText = triggerBtn.textContent;
+                triggerBtn.textContent = 'STOP!!';
+            }
+
+            const bombEl = document.createElement('div');
+            bombEl.className = 'bomb-icon';
+            bombEl.textContent = '\uD83D\uDCA3';
+            canvas.appendChild(bombEl);
+
+            // カウントダウンを爆弾の中に重ねる
+            const cdEl = document.createElement('div');
+            cdEl.className = 'bomb-countdown';
+            cdEl.innerHTML = '<div class="count-num">3</div><div class="tap-label">Tap to STOP!!</div>';
+            canvas.appendChild(cdEl);
+
+            function cancel() {
+                if (cancelled) return;
+                cancelled = true;
+                bombCountdownActive = false;
+                bombEl.remove();
+                cdEl.remove();
+                if (triggerBtn) triggerBtn.textContent = origBtnText;
+                playSfx();
+            }
+
+            // ボタンクリックでもキャンセル
+            function btnCancel() { cancel(); }
+            if (triggerBtn) triggerBtn.addEventListener('click', btnCancel, { once: true });
+
+            setTimeout(() => {
+                if (cancelled) return;
+                bombEl.style.animation = 'none';
+                bombEl.style.top = '35%';
+                bombEl.style.transform = 'translateX(-50%) rotate(360deg)';
+                bombEl.classList.add('fuse');
+                bombEl.addEventListener('click', cancel);
+                bombEl.addEventListener('touchend', e => { e.preventDefault(); cancel(); });
+
+                const numEl = cdEl.querySelector('.count-num');
+                let count = 3;
+
+                function tick() {
+                    if (cancelled) return;
+                    count--;
+                    if (count > 0) {
+                        numEl.textContent = count;
+                        numEl.style.animation = 'none';
+                        void numEl.offsetWidth;
+                        numEl.style.animation = 'countPulse 0.3s ease-out';
+                        playSfx();
+                        setTimeout(tick, 800);
+                    } else {
+                        numEl.textContent = 'BOMB!!';
+                        numEl.classList.add('boom');
+                        setTimeout(() => {
+                            if (cancelled) return;
+                            bombCountdownActive = false;
+                            bombEl.remove();
+                            cdEl.remove();
+                            if (triggerBtn) {
+                                triggerBtn.removeEventListener('click', btnCancel);
+                                triggerBtn.textContent = origBtnText;
+                            }
+                            doExplosion(onExplode);
+                        }, 300);
+                    }
+                }
+
+                playSfx();
+                setTimeout(tick, 800);
+            }, 500);
+        }
+
+        function clearAllWithBtn(btn) {
+            if (bombCountdownActive) return;
+            selectedId = null;
+            if (stickers.length === 0) { renderUploadGrid(); renderCanvas(); updateUI(); return; }
+            bombCountdown(() => {
+                stickers.length = 0;
+                renderUploadGrid(); renderCanvas(); updateUI();
+            }, btn);
+        }
+        function clearAll() { clearAllWithBtn($('clearBtn')); }
+
+        // モード
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mode = btn.dataset.mode;
+            });
+        });
+
+        // ターゲット
+        document.querySelectorAll('.target-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                targetArea = btn.dataset.target;
+                $('customTargetSlide').classList.toggle('open', targetArea === 'custom');
+                if (targetArea !== 'custom') {
+                    customTarget = null;
+                    customDragRect = null;
+                    canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+                }
+            });
+        });
+
+        // 平面時のユーザー設定サイズを保持
+        let flatSize = { w: canvasSize.w, h: canvasSize.h };
+
+        // シェイプごとの内部サイズ（座標系をアスペクト比に合わせる）
+        const shapeAspects = {
+            flat: null,
+            skateboard: [200, 700],
+            phone: [360, 760],
+            laptop: [960, 600],
+            car: [750, 300],
+            bike: [500, 300],
+            helmet: [600, 600],
+            guitar: [360, 600],
+            suitcase: [450, 600],
+            fridge: [360, 600],
+            door: [240, 600],
+        };
+
+        // キャンバス形状
+        document.querySelectorAll('.canvas-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.canvas-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                canvasShape = btn.dataset.shape;
+                canvas.className = 'canvas-container';
+                if (canvasShape !== 'flat') canvas.classList.add('shape-' + canvasShape);
+                // 内部座標系をアスペクト比に合わせる
+                const aspect = shapeAspects[canvasShape];
+                if (aspect) {
+                    canvasSize.w = aspect[0];
+                    canvasSize.h = aspect[1];
+                } else {
+                    canvasSize.w = flatSize.w;
+                    canvasSize.h = flatSize.h;
+                }
+                $('canvasW').value = canvasSize.w;
+                $('canvasH').value = canvasSize.h;
+                applyCanvasSize();
+                renderCanvas();
+            });
+        });
+
+        // キャンバスサイズ変更
+        function applyCanvasSize() {
+            canvas.style.aspectRatio = canvasSize.w + '/' + canvasSize.h;
+            $('canvasW').value = canvasSize.w;
+            $('canvasH').value = canvasSize.h;
+        }
+        $('canvasW').addEventListener('change', e => {
+            canvasSize.w = Math.max(100, Math.min(4000, parseInt(e.target.value) || 900));
+            flatSize.w = canvasSize.w; flatSize.h = canvasSize.h;
+            applyCanvasSize();
+            document.querySelectorAll('#sizePresets .canvas-mode-btn').forEach(b => b.classList.remove('active'));
+        });
+        $('canvasH').addEventListener('change', e => {
+            canvasSize.h = Math.max(100, Math.min(4000, parseInt(e.target.value) || 600));
+            flatSize.w = canvasSize.w; flatSize.h = canvasSize.h;
+            applyCanvasSize();
+            document.querySelectorAll('#sizePresets .canvas-mode-btn').forEach(b => b.classList.remove('active'));
+        });
+        $('sizePresets').addEventListener('click', e => {
+            const btn = e.target.closest('[data-w]');
+            if (!btn) return;
+            document.querySelectorAll('#sizePresets .canvas-mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            canvasSize.w = parseInt(btn.dataset.w);
+            canvasSize.h = parseInt(btn.dataset.h);
+            flatSize.w = canvasSize.w; flatSize.h = canvasSize.h;
+            applyCanvasSize();
+        });
+
+        // 背景色
+        function applyBgColor() {
+            if (bgColor === 'transparent') {
+                canvas.style.background = '';
+                canvas.style.backgroundImage = 'repeating-conic-gradient(#d4d4d4 0% 25%, #e5e5e5 0% 50%)';
+                canvas.style.backgroundSize = '20px 20px';
+            } else {
+                canvas.style.background = bgColor;
+                canvas.style.backgroundImage = 'none';
+            }
+        }
+        $('bgColor').addEventListener('input', e => {
+            bgColor = e.target.value;
+            document.querySelectorAll('#bgPresets .canvas-mode-btn').forEach(b => b.classList.remove('active'));
+            applyBgColor();
+        });
+        $('bgPresets').addEventListener('click', e => {
+            const btn = e.target.closest('[data-bg]');
+            if (!btn) return;
+            document.querySelectorAll('#bgPresets .canvas-mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            bgColor = btn.dataset.bg;
+            if (bgColor !== 'transparent') $('bgColor').value = bgColor;
+            applyBgColor();
+        });
+
+        // ダミーボム
+        $('dummyToggle').addEventListener('click', () => {
+            dummyEnabled = !dummyEnabled;
+            $('dummyToggle').classList.toggle('checked', dummyEnabled);
+            $('dummySlideSection').classList.toggle('open', dummyEnabled);
+        });
+
+        const slider = $('intensitySlider');
+        bindSlider(slider, 0, 100, pct => {
+            dummyIntensityVal = pct;
+            slider.style.setProperty('--value', pct + '%');
+            $('intensityInput').value = pct;
+        });
+        $('intensityInput').addEventListener('change', e => {
+            dummyIntensityVal = Math.max(0, Math.min(100, parseInt(e.target.value) || 50));
+            e.target.value = dummyIntensityVal;
+            slider.style.setProperty('--value', dummyIntensityVal + '%');
+        });
+
+        document.querySelectorAll('.color-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                dummyColorMode = btn.dataset.colormode;
+                $('monochromePicker').classList.toggle('hidden', dummyColorMode !== 'monochrome');
+                renderCanvas();
+            });
+        });
+        $('monochromeColor').addEventListener('input', e => { monochromeColor = e.target.value; renderCanvas(); });
+
+        // キャンバス描画
+        // 画像キャッシュ（src → HTMLImageElement）
+        const imgCache = {};
+        function getCachedImg(src) {
+            if (imgCache[src]) return imgCache[src];
+            const img = new Image();
+            img.src = src;
+            imgCache[src] = img;
+            return img;
+        }
+
+        // ステッカーをオフスクリーンcanvasでまとめ描画（選択中以外）
+        let stickerLayerEl = null;
+        let renderScheduled = false;
+
+        function renderCanvas() {
+            // 不要なDOM要素を削除
+            canvas.querySelectorAll('.sticker, .dummy-bg-layer, .sticker-layer').forEach(el => el.remove());
+
+            // ダミー背景
+            if (dummyBgDataUrl) {
+                const bg = document.createElement('img');
+                bg.className = 'dummy-bg-layer';
+                bg.src = dummyBgDataUrl;
+                bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+                canvas.appendChild(bg);
+            }
+
+            if (stickers.length === 0) return;
+
+            // オフスクリーンcanvasに全ステッカー（選択中以外）を描画
+            const off = document.createElement('canvas');
+            off.width = canvasSize.w; off.height = canvasSize.h;
+            const ctx = off.getContext('2d');
+
+            stickers.forEach((s, idx) => {
+                if (s.id === selectedId) return;
+                const img = getCachedImg(s.src);
+                if (!img.complete || !img.naturalWidth) return;
+                ctx.save();
+                ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
+                ctx.rotate(s.rotation * Math.PI / 180);
+                ctx.drawImage(img, -s.w / 2, -s.h / 2, s.w, s.h);
+                ctx.restore();
+            });
+
+            const layerImg = document.createElement('img');
+            layerImg.className = 'sticker-layer';
+            layerImg.src = off.toDataURL('image/png');
+            layerImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;';
+            canvas.appendChild(layerImg);
+
+            // 選択中のステッカーだけDOM要素で表示（ハンドル付き）
+            if (selectedId) {
+                const s = stickers.find(st => st.id === selectedId);
+                if (s) {
+                    const el = document.createElement('div');
+                    el.className = 'sticker selected';
+                    el.dataset.id = s.id;
+                    el.style.cssText =
+                        'left:' + (s.x / canvasSize.w * 100) + '%;' +
+                        'top:' + (s.y / canvasSize.h * 100) + '%;' +
+                        'width:' + (s.w / canvasSize.w * 100) + '%;' +
+                        'height:' + (s.h / canvasSize.h * 100) + '%;' +
+                        'transform:rotate(' + s.rotation + 'deg);z-index:9990;';
+                    const img = document.createElement('img');
+                    img.src = s.src; img.alt = ''; img.draggable = false;
+                    el.appendChild(img);
+                    const rh = document.createElement('div'); rh.className = 'resize-handle'; rh.dataset.action = 'resize'; el.appendChild(rh);
+                    const rl = document.createElement('div'); rl.className = 'rotate-line'; el.appendChild(rl);
+                    const ro = document.createElement('div'); ro.className = 'rotate-handle'; ro.dataset.action = 'rotate'; el.appendChild(ro);
+                    canvas.appendChild(el);
+                }
+            }
+        }
+
+        // ドラッグ中は軽量な再描画（選択中のDOM要素だけ更新）
+        function renderSelectedOnly() {
+            const s = stickers.find(st => st.id === selectedId);
+            const el = canvas.querySelector('.sticker.selected');
+            if (!s || !el) return;
+            el.style.left = (s.x / canvasSize.w * 100) + '%';
+            el.style.top = (s.y / canvasSize.h * 100) + '%';
+            el.style.width = (s.w / canvasSize.w * 100) + '%';
+            el.style.height = (s.h / canvasSize.h * 100) + '%';
+            el.style.transform = 'rotate(' + s.rotation + 'deg)';
+        }
+
+        function hueFrom(hex) {
+            const r = parseInt(hex.substr(1,2),16)/255, g = parseInt(hex.substr(3,2),16)/255, b = parseInt(hex.substr(5,2),16)/255;
+            const mx = Math.max(r,g,b), mn = Math.min(r,g,b); let h = 0;
+            if (mx !== mn) { const d = mx - mn;
+                if (mx===r) h=(g-b)/d+(g<b?6:0); else if(mx===g) h=(b-r)/d+2; else h=(r-g)/d+4; h/=6; }
+            return Math.round(h * 360);
+        }
+
+        // ドラッグ
+        // 座標からステッカーを当たり判定（上のレイヤーから順に）
+        function hitTestSticker(px, py) {
+            for (let i = stickers.length - 1; i >= 0; i--) {
+                const s = stickers[i];
+                const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+                const rad = -s.rotation * Math.PI / 180;
+                const dx = px - cx, dy = py - cy;
+                const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+                const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+                if (Math.abs(lx) <= s.w / 2 && Math.abs(ly) <= s.h / 2) return s;
+            }
+            return null;
+        }
+
+        // === ピンチズーム＋2本指パン ===
+        let canvasZoom = 1;
+        let canvasPanX = 0, canvasPanY = 0;
+        let pinchState = null;
+
+        function applyCanvasTransform() {
+            canvas.style.transform = 'scale(' + canvasZoom + ') translate(' + canvasPanX + 'px,' + canvasPanY + 'px)';
+            canvas.style.transformOrigin = '0 0';
+        }
+
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const t1 = e.touches[0], t2 = e.touches[1];
+                pinchState = {
+                    dist: Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY),
+                    midX: (t1.clientX + t2.clientX) / 2,
+                    midY: (t1.clientY + t2.clientY) / 2,
+                    startZoom: canvasZoom,
+                    startPanX: canvasPanX,
+                    startPanY: canvasPanY,
+                };
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', e => {
+            if (e.touches.length === 2 && pinchState) {
+                e.preventDefault();
+                const t1 = e.touches[0], t2 = e.touches[1];
+                const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                const midX = (t1.clientX + t2.clientX) / 2;
+                const midY = (t1.clientY + t2.clientY) / 2;
+
+                // ズーム（指の中点を中心に）
+                const ratio = dist / pinchState.dist;
+                const newZoom = Math.max(0.5, Math.min(5, pinchState.startZoom * ratio));
+
+                const rect = canvas.getBoundingClientRect();
+                const originX = (pinchState.midX - rect.left) / pinchState.startZoom;
+                const originY = (pinchState.midY - rect.top) / pinchState.startZoom;
+
+                canvasPanX = pinchState.startPanX + (midX - pinchState.midX) / newZoom + originX * (1 / pinchState.startZoom - 1 / newZoom);
+                canvasPanY = pinchState.startPanY + (midY - pinchState.midY) / newZoom + originY * (1 / pinchState.startZoom - 1 / newZoom);
+                canvasZoom = newZoom;
+
+                applyCanvasTransform();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', e => {
+            if (e.touches.length < 2) pinchState = null;
+        });
+
+        // ダブルタップでリセット
+        let lastTapTime = 0;
+        canvas.addEventListener('touchend', e => {
+            if (e.touches.length === 0 && e.changedTouches.length === 1) {
+                const now = Date.now();
+                if (now - lastTapTime < 300 && canvasZoom !== 1) {
+                    canvasZoom = 1; canvasPanX = 0; canvasPanY = 0;
+                    applyCanvasTransform();
+                }
+                lastTapTime = now;
+            }
+        });
+
+        canvas.addEventListener('pointerdown', e => {
+            const r = canvas.getBoundingClientRect(), sc = canvasSize.w / r.width;
+            const px = (e.clientX - r.left) * sc, py = (e.clientY - r.top) * sc;
+
+            // カスタムターゲット（ドラッグ範囲 or クリック中心）
+            if (targetArea === 'custom' && !e.target.closest('.sticker')) {
+                e.preventDefault();
+                customDragStart = { x: px, y: py };
+                customDragRect = null;
+                canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+                return;
+            }
+
+            // 選択中ステッカーのハンドル操作
+            const sEl = e.target.closest('.sticker');
+            if (sEl && e.target.dataset.action) {
+                e.preventDefault(); e.stopPropagation();
+                const sticker = stickers.find(s => s.id === selectedId); if (!sticker) return;
+                dragState = {
+                    action: e.target.dataset.action, stickerId: selectedId,
+                    startX: px, startY: py, orig: { ...sticker },
+                };
+                return;
+            }
+
+            // データベースでヒットテスト
+            const hit = hitTestSticker(px, py);
+            if (!hit) { selectedId = null; renderCanvas(); updateUI(); return; }
+
+            e.preventDefault(); e.stopPropagation();
+            selectedId = hit.id;
+            dragState = {
+                action: 'move', stickerId: hit.id,
+                startX: px, startY: py, orig: { ...hit },
+            };
+            renderCanvas(); updateUI();
+        });
+
+        document.addEventListener('pointermove', e => {
+            // カスタムターゲットのドラッグ範囲指定
+            if (customDragStart && !dragState) {
+                const r = canvas.getBoundingClientRect(), sc = canvasSize.w / r.width;
+                const scY = canvasSize.h / r.height;
+                const cx = (e.clientX - r.left) * sc, cy = (e.clientY - r.top) * scY;
+                const x = Math.min(customDragStart.x, cx), y = Math.min(customDragStart.y, cy);
+                const w = Math.abs(cx - customDragStart.x), h = Math.abs(cy - customDragStart.y);
+                if (w > 5 || h > 5) {
+                    customDragRect = { x, y, w, h };
+                    canvas.querySelectorAll('.target-rect').forEach(el => el.remove());
+                    const rect = document.createElement('div');
+                    rect.className = 'target-rect';
+                    rect.style.cssText = 'position:absolute;border:2px dashed #facc15;background:rgba(250,204,21,0.1);pointer-events:none;z-index:9990;' +
+                        'left:' + (x / canvasSize.w * 100) + '%;top:' + (y / canvasSize.h * 100) + '%;' +
+                        'width:' + (w / canvasSize.w * 100) + '%;height:' + (h / canvasSize.h * 100) + '%;';
+                    canvas.appendChild(rect);
+                }
+                return;
+            }
+            if (!dragState) return;
+            const r = canvas.getBoundingClientRect(), sc = canvasSize.w / r.width;
+            const cx = (e.clientX - r.left) * sc, cy = (e.clientY - r.top) * (canvasSize.h / r.height);
+            const idx = stickers.findIndex(s => s.id === dragState.stickerId); if (idx === -1) return;
+            const o = dragState.orig;
+            if (dragState.action === 'move') { stickers[idx].x = o.x + cx - dragState.startX; stickers[idx].y = o.y + cy - dragState.startY; }
+            else if (dragState.action === 'resize') {
+                const ocx = o.x + o.w/2, ocy = o.y + o.h/2;
+                const ratio = Math.max(0.15, Math.hypot(cx-ocx,cy-ocy) / Math.hypot(dragState.startX-ocx,dragState.startY-ocy));
+                stickers[idx].w = o.w * ratio; stickers[idx].h = o.h * ratio;
+                stickers[idx].x = ocx - stickers[idx].w/2; stickers[idx].y = ocy - stickers[idx].h/2;
+            } else if (dragState.action === 'rotate') {
+                const ocx = o.x + o.w/2, ocy = o.y + o.h/2;
+                stickers[idx].rotation = o.rotation + (Math.atan2(cy-ocy,cx-ocx) - Math.atan2(dragState.startY-ocy,dragState.startX-ocx)) * 180 / Math.PI;
+            }
+            renderSelectedOnly();
+            updateUI();
+        });
+        document.addEventListener('pointerup', e => {
+            // カスタムターゲット確定
+            if (customDragStart) {
+                if (customDragRect && customDragRect.w > 10 && customDragRect.h > 10) {
+                    // ドラッグ範囲指定
+                    customTarget = null;
+                } else {
+                    // クリック → 中心点指定
+                    customTarget = { x: customDragStart.x, y: customDragStart.y };
+                    customDragRect = null;
+                    canvas.querySelectorAll('.target-rect').forEach(el => el.remove());
+                    const ind = document.createElement('div'); ind.className = 'target-indicator';
+                    ind.style.left = (customTarget.x / canvasSize.w * 100) + '%';
+                    ind.style.top = (customTarget.y / canvasSize.h * 100) + '%';
+                    canvas.appendChild(ind);
+                }
+                customDragStart = null;
+                return;
+            }
+            if (dragState) { dragState = null; renderCanvas(); }
+        });
+
+        // レイヤー操作
+        function layerOp(fn) { if (!selectedId) return; fn(); renderCanvas(); }
+        $('toFront').addEventListener('click', () => layerOp(() => { const i = stickers.findIndex(s=>s.id===selectedId); if(i>=0){const[t]=stickers.splice(i,1);stickers.push(t);} }));
+        $('forward').addEventListener('click', () => layerOp(() => { const i = stickers.findIndex(s=>s.id===selectedId); if(i>=0&&i<stickers.length-1)[stickers[i],stickers[i+1]]=[stickers[i+1],stickers[i]]; }));
+        $('backward').addEventListener('click', () => layerOp(() => { const i = stickers.findIndex(s=>s.id===selectedId); if(i>0)[stickers[i],stickers[i-1]]=[stickers[i-1],stickers[i]]; }));
+        $('toBack').addEventListener('click', () => layerOp(() => { const i = stickers.findIndex(s=>s.id===selectedId); if(i>=0){const[t]=stickers.splice(i,1);stickers.unshift(t);} }));
+        $('duplicate').addEventListener('click', () => {
+            const t = stickers.find(s=>s.id===selectedId); if(!t) return;
+            const c = {...t, id:genId(), x:t.x+20, y:t.y+20};
+            stickers.push(c); selectedId = c.id; renderCanvas(); updateUI();
+        });
+        $('deleteSticker').addEventListener('click', delSel);
+        $('closeControls').addEventListener('click', () => { selectedId = null; renderCanvas(); updateUI(); });
+
+        function delSel() {
+            if (!selectedId) return;
+            const el = canvas.querySelector('[data-id="' + selectedId + '"]');
+            const delId = selectedId;
+            if (el) {
+                const s = stickers.find(s => s.id === delId);
+                if (s) el.style.setProperty('--rot', s.rotation + 'deg');
+                el.classList.add('peel-off');
+                playPeelSfx();
+                shakeCanvas(false);
+                selectedId = null;
+                $('controls').classList.add('hidden');
+                el.addEventListener('animationend', () => {
+                    const i = stickers.findIndex(s => s.id === delId);
+                    if (i >= 0) stickers.splice(i, 1);
+                    renderUploadGrid(); renderCanvas(); updateUI();
+                }, { once: true });
+            } else {
+                const i = stickers.findIndex(s => s.id === delId);
+                if (i >= 0) stickers.splice(i, 1);
+                selectedId = null; renderUploadGrid(); renderCanvas(); updateUI();
+            }
+        }
+
+        $('bombBtn').addEventListener('click', bomb);
+        $('addMoreBtn').addEventListener('click', addMore);
+        $('dummyBombBtn').addEventListener('click', dummyBomb);
+        $('addDummyBtn').addEventListener('click', addDummyBomb);
+        $('clearDummyBtn').addEventListener('click', clearDummy);
+        $('clearBtn').addEventListener('click', clearAll);
+
+        document.addEventListener('keydown', e => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) { e.preventDefault(); delSel(); }
+        });
+
+        // PNG/JPG書き出し
+        function exportImage(fmt) {
+            const off = document.createElement('canvas');
+            const rect = canvas.getBoundingClientRect();
+            off.width = rect.width * 2; off.height = rect.height * 2;
+            const ctx = off.getContext('2d'); ctx.scale(2, 2);
+            // 背景
+            if (bgColor === 'transparent') {
+                if (fmt === 'png') { /* 透明のまま */ }
+                else { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, rect.width, rect.height); }
+            } else {
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, rect.width, rect.height);
+            }
+            const sx = rect.width / canvasSize.w, sy = rect.height / canvasSize.h;
+
+            // ダミー背景画像を描画
+            const drawDummyAndStickers = () => {
+                // ユーザーステッカー
+                if (stickers.length === 0) { doDownload(); return; }
+                let loaded = 0; const imgs = [];
+                stickers.forEach((s, i) => {
+                    const im = new Image(); im.crossOrigin = 'anonymous';
+                    im.onload = im.onerror = () => { imgs[i] = im.complete && im.naturalWidth ? im : null; if (++loaded === stickers.length) drawStickers(); };
+                    im.src = s.src;
+                });
+                function drawStickers() {
+                    stickers.forEach((s, i) => {
+                        if (!imgs[i]) return;
+                        ctx.save();
+                        ctx.translate(s.x * sx + s.w * sx / 2, s.y * sy + s.h * sy / 2);
+                        ctx.rotate(s.rotation * Math.PI / 180);
+                        ctx.drawImage(imgs[i], -s.w * sx / 2, -s.h * sy / 2, s.w * sx, s.h * sy);
+                        ctx.restore();
+                    });
+                    doDownload();
+                }
+            };
+
+            function doDownload() {
+                const a = document.createElement('a');
+                a.download = 'sticker-bomb.' + fmt;
+                a.href = off.toDataURL(fmt === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
+                a.click();
+            }
+
+            if (dummyBgDataUrl) {
+                const dImg = new Image();
+                dImg.onload = () => { ctx.drawImage(dImg, 0, 0, rect.width, rect.height); drawDummyAndStickers(); };
+                dImg.src = dummyBgDataUrl;
+            } else {
+                drawDummyAndStickers();
+            }
+        }
+        $('exportPng').addEventListener('click', () => exportImage('png'));
+        $('exportJpg').addEventListener('click', () => exportImage('jpg'));
+
+        // プロジェクト保存/読み込み
+        $('saveProject').addEventListener('click', () => {
+            const data = { v:'3.1', mode, targetArea, canvasShape, dummyEnabled, dummyIntensityVal, dummyColorMode, monochromeColor, alignHeight, alignWidth, defaultFreq:$('freqInput').value, uploadedImages, imageFrequencies, stickers };
+            const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+            const a = document.createElement('a'); a.download = 'sticker-bomb-' + Date.now() + '.json';
+            a.href = URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(a.href);
+        });
+        $('loadProject').addEventListener('click', () => $('loadProjectInput').click());
+        $('loadProjectInput').addEventListener('change', e => {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = ev => {
+                try { loadProj(JSON.parse(ev.target.result)); } catch(err) { alert('読み込み失敗'); }
+            };
+            r.readAsText(f); e.target.value = '';
+        });
+
+        function loadProj(p) {
+            mode = p.mode || 'gichigichi'; targetArea = p.targetArea || 'all';
+            canvasShape = p.canvasShape || 'flat'; dummyEnabled = p.dummyEnabled || false;
+            dummyIntensityVal = p.dummyIntensityVal || 50; dummyColorMode = p.dummyColorMode || 'color';
+            monochromeColor = p.monochromeColor || '#facc15';
+            alignHeight = p.alignHeight || false; alignWidth = p.alignWidth || false;
+            uploadedImages = p.uploadedImages || []; imageFrequencies = p.imageFrequencies || {};
+            stickers = p.stickers || []; selectedId = null;
+            $('freqInput').value = p.defaultFreq || '1';
+            $('alignHeight').checked = alignHeight; $('alignWidth').checked = alignWidth;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+            document.querySelectorAll('.target-btn').forEach(b => b.classList.toggle('active', b.dataset.target === targetArea));
+            document.querySelectorAll('.canvas-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.shape === canvasShape));
+            canvas.className = 'canvas-container'; if (canvasShape !== 'flat') canvas.classList.add('shape-' + canvasShape);
+            $('dummyToggle').classList.toggle('checked', dummyEnabled);
+            $('dummyIntensitySection').classList.toggle('hidden', !dummyEnabled);
+            $('dummyColorModeSection').classList.toggle('hidden', !dummyEnabled);
+            slider.style.setProperty('--value', dummyIntensityVal + '%');
+            $('intensityInput').value = dummyIntensityVal;
+            document.querySelectorAll('.color-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.colormode === dummyColorMode));
+            $('monochromePicker').classList.toggle('hidden', dummyColorMode !== 'monochrome');
+            $('monochromeColor').value = monochromeColor;
+            $('customTargetSlide').classList.toggle('open', targetArea === 'custom');
+            renderUploadGrid(); renderCanvas(); updateUI();
+        }
+
+        // === 効果音エンジン (Web Audio API) ===
+        let audioCtx = null;
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        const sfxDefs = [
+            // ピ - 高い短いビープ
+            (ctx) => { const o = ctx.createOscillator(); const g = ctx.createGain();
+                o.type = 'square'; o.frequency.value = 1200 + Math.random() * 400;
+                g.gain.setValueAtTime(0.15, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.08); },
+            // ピヨ - 下降チャープ
+            (ctx) => { const o = ctx.createOscillator(); const g = ctx.createGain();
+                o.type = 'sine'; o.frequency.setValueAtTime(1600, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.12);
+                g.gain.setValueAtTime(0.12, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.12); },
+            // ボ - 低いサッド
+            (ctx) => { const o = ctx.createOscillator(); const g = ctx.createGain();
+                o.type = 'sine'; o.frequency.value = 80 + Math.random() * 60;
+                g.gain.setValueAtTime(0.25, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.15); },
+            // パ - シャープポップ
+            (ctx) => { const o = ctx.createOscillator(); const g = ctx.createGain();
+                o.type = 'triangle'; o.frequency.setValueAtTime(800, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.06);
+                g.gain.setValueAtTime(0.2, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.06); },
+            // パシ - ノイズスラップ
+            (ctx) => { const buf = ctx.createBuffer(1, ctx.sampleRate * 0.07, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.2));
+                const src = ctx.createBufferSource(); src.buffer = buf;
+                const g = ctx.createGain(); g.gain.setValueAtTime(0.18, ctx.currentTime);
+                const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2000;
+                src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(); },
+        ];
+
+        function playSfx() {
+            try { const ctx = getAudioCtx(); sfxDefs[Math.floor(Math.random() * sfxDefs.length)](ctx); } catch(e) {}
+        }
+
+        // BOMB時の爆発音
+        function playBombSfx() {
+            try {
+                const ctx = getAudioCtx();
+                // 低音ドーン
+                const o = ctx.createOscillator(); const g = ctx.createGain();
+                o.type = 'sawtooth'; o.frequency.setValueAtTime(150, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.4);
+                g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.4);
+                // ノイズバースト
+                const buf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.15));
+                const src = ctx.createBufferSource(); src.buffer = buf;
+                const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.2, ctx.currentTime);
+                src.connect(g2); g2.connect(ctx.destination); src.start();
+            } catch(e) {}
+        }
+
+        // ベリベリ効果音
+        // 爆発音（ドカーン！）
+        function playExplosionSfx() {
+            try {
+                const ctx = getAudioCtx();
+                const t = ctx.currentTime;
+                // 超低音ドーン
+                const o1 = ctx.createOscillator(); const g1 = ctx.createGain();
+                o1.type = 'sawtooth';
+                o1.frequency.setValueAtTime(200, t);
+                o1.frequency.exponentialRampToValueAtTime(20, t + 0.6);
+                g1.gain.setValueAtTime(0.4, t);
+                g1.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+                o1.connect(g1); g1.connect(ctx.destination); o1.start(t); o1.stop(t + 0.6);
+                // ノイズ爆発（大きめ・長め）
+                const buf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.12));
+                const src = ctx.createBufferSource(); src.buffer = buf;
+                const g2 = ctx.createGain();
+                g2.gain.setValueAtTime(0.35, t);
+                g2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+                const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000;
+                src.connect(lp); lp.connect(g2); g2.connect(ctx.destination); src.start(t);
+                // 高音パリーン
+                const o2 = ctx.createOscillator(); const g3 = ctx.createGain();
+                o2.type = 'square';
+                o2.frequency.setValueAtTime(2000, t);
+                o2.frequency.exponentialRampToValueAtTime(100, t + 0.3);
+                g3.gain.setValueAtTime(0.1, t);
+                g3.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                o2.connect(g3); g3.connect(ctx.destination); o2.start(t); o2.stop(t + 0.3);
+            } catch(e) {}
+        }
+
+        function playPeelSfx() {
+            try {
+                const ctx = getAudioCtx();
+                const t = ctx.currentTime;
+                // 3段階のノイズバースト（ベリ・ベリ・ベリッ）
+                for (let step = 0; step < 3; step++) {
+                    const offset = step * 0.09;
+                    const dur = 0.07 + step * 0.02;
+                    const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+                    const data = buf.getChannelData(0);
+                    for (let i = 0; i < data.length; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.4)) * (0.8 + Math.sin(i * 0.1) * 0.2);
+                    }
+                    const src = ctx.createBufferSource(); src.buffer = buf;
+                    const g = ctx.createGain();
+                    g.gain.setValueAtTime(0.12 + step * 0.04, t + offset);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + offset + dur);
+                    const f = ctx.createBiquadFilter(); f.type = 'bandpass';
+                    f.frequency.value = 1500 + step * 800;
+                    f.Q.value = 1.5;
+                    src.connect(f); f.connect(g); g.connect(ctx.destination);
+                    src.start(t + offset);
+                }
+            } catch(e) {}
+        }
+
+        // === キャンバス振動 ===
+        const canvasWrapper = document.querySelector('.canvas-wrapper');
+        function shakeCanvas(big) {
+            canvasWrapper.classList.remove('shaking', 'bomb-shaking');
+            void canvasWrapper.offsetWidth; // reflow
+            canvasWrapper.classList.add(big ? 'bomb-shaking' : 'shaking');
+        }
+
+        // === アニメーション付きBOMB ===
+        let onBombComplete = null;
+
+        function animatedBomb(stickersList, isBigBomb) {
+            if (stickersList.length === 0) { renderCanvas(); updateUI(); if (onBombComplete) { onBombComplete(); onBombComplete = null; } return; }
+
+            if (isBigBomb) { playBombSfx(); shakeCanvas(true); }
+
+            const total = stickersList.length;
+            let totalMs;
+            const cappedTotal = Math.min(total, 20);
+            if (cappedTotal <= 5) totalMs = 500;
+            else if (cappedTotal <= 10) totalMs = 500 + (cappedTotal - 5) * 100;
+            else totalMs = 1000 + (cappedTotal - 10) * 50;
+            totalMs = Math.min(totalMs, 1500);
+
+            const steps = Math.min(total, 20);
+            const batchSize = Math.max(1, Math.ceil(total / steps));
+            const delay = Math.max(15, Math.floor(totalMs / steps));
+            let idx = 0;
+
+            function placeNext() {
+                const batch = stickersList.slice(idx, idx + batchSize);
+                batch.forEach(s => stickers.push(s));
+                idx += batchSize;
+
+                renderCanvas();
+
+                batch.forEach(s => {
+                    const el = canvas.querySelector('[data-id="' + s.id + '"]');
+                    if (el) {
+                        el.style.setProperty('--rot', s.rotation + 'deg');
+                        el.classList.add('slap-in');
+                    }
+                });
+
+                if (batch.length > 0) {
+                    playSfx();
+                    if (!isBigBomb || idx % (batchSize * 2) === 0) shakeCanvas(false);
+                }
+
+                updateUI();
+                renderUploadGrid();
+
+                if (idx < stickersList.length) {
+                    setTimeout(placeNext, delay);
+                } else {
+                    if (onBombComplete) { onBombComplete(); onBombComplete = null; }
+                }
+            }
+            placeNext();
+        }
+
+        // bomb()を演出版に差し替え
+        const _origBomb = bomb;
+        bomb = function() {
+            if (uploadedImages.length === 0) return;
+            stickers.length = 0;
+
+            const afterDummy = () => {
+                const tempStickers = [];
+                const origPush = stickers.push.bind(stickers);
+
+                // bombGichigichi/bombNaraberuのpushを横取り
+                stickers.push = function(...items) { tempStickers.push(...items); return tempStickers.length; };
+
+                if (mode === 'gichigichi') bombGichigichi();
+                else bombNaraberu();
+
+                stickers.push = origPush; // 復元
+                selectedId = null;
+                renderCanvas(); updateUI();
+
+                animatedBomb(tempStickers, true);
+            };
+
+            afterDummy();
+        };
+
+        // addMore()も演出版に
+        const _origAddMore = addMore;
+        addMore = function() {
+            if (uploadedImages.length === 0) return;
+            const list = shuffleArray(buildImageList());
+            const userStickers = stickers.filter(s => !s.isDummy);
+            const hasExisting = userStickers.length > 0;
+            const avgW = hasExisting ? userStickers.reduce((s, st) => s + st.w, 0) / userStickers.length : 0;
+            const tempStickers = [];
+            list.forEach(src => {
+                let size;
+                if (hasExisting) { const v = avgW * 0.15; size = avgW - v + Math.random() * v * 2; }
+                else { size = stickerSize(); }
+                const aspect = src.naturalH / src.naturalW;
+                if (alignHeight) size = stickerSizeAligned() / aspect;
+                if (alignWidth) size = stickerSizeAligned();
+                const pos = getTargetPosition(size, mode === 'gichigichi' ? 0.35 : 0.05);
+                const rotation = mode === 'gichigichi' ? Math.random() * 360 : (Math.random() - 0.5) * 6;
+                tempStickers.push({
+                    id: genId(), srcId: src.id, src: src.src,
+                    x: pos.x, y: pos.y, w: size, h: size * aspect,
+                    rotation, isDummy: false,
+                });
+            });
+            animatedBomb(tempStickers, false);
+        };
+
+        // placeSingleStickerも演出付き
+        const _origPlaceSingle = placeSingleSticker;
+        placeSingleSticker = function(imgData) {
+            let size = stickerSize();
+            const aspect = imgData.naturalH / imgData.naturalW;
+            if (alignHeight && stickers.length > 0) { size = stickerSizeAligned() / aspect; }
+            if (alignWidth && stickers.length > 0) { size = stickerSizeAligned(); }
+            const s = {
+                id: genId(), srcId: imgData.id, src: imgData.src,
+                x: Math.random() * (canvasSize.w - size),
+                y: Math.random() * (canvasSize.h - size * aspect),
+                w: size, h: size * aspect,
+                rotation: (Math.random() - 0.5) * 30, isDummy: false,
+            };
+            animatedBomb([s], false);
+        };
+
+        // イベントリスナーを演出版に再バインド
+        $('bombBtn').removeEventListener('click', _origBomb);
+        $('bombBtn').addEventListener('click', bomb);
+        $('addMoreBtn').removeEventListener('click', _origAddMore);
+        $('addMoreBtn').addEventListener('click', addMore);
+
+        // === モバイルフッター ===
+        const mobilePanel = $('mobilePanel');
+        const sectionMap = {};
+
+        // セクション番号→サイドバーセクションをマッピング
+        document.querySelectorAll('.sidebar .section').forEach(sec => {
+            const title = sec.querySelector('.section-title');
+            if (!title) return;
+            const m = title.textContent.match(/^(\d+)/);
+            if (m) sectionMap[m[1]] = sec;
+        });
+        // BOMBセクション（番号なし）
+        document.querySelectorAll('.sidebar .section').forEach(sec => {
+            const title = sec.querySelector('.section-title');
+            if (title && title.textContent.includes('BOMB!')) sectionMap['bomb'] = sec;
+        });
+
+        let activeMobilePanel = null;
+
+        function openMobileSection(panel, btn) {
+            document.querySelectorAll('.mf-btn.menu').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeMobilePanel = panel;
+            const sec = sectionMap[panel];
+            if (sec) {
+                returnSectionsToSidebar();
+                mobilePanel.innerHTML = '';
+                // ラッチ
+                const latch = document.createElement('div');
+                latch.className = 'panel-latch';
+                latch.innerHTML = '<div class="panel-latch-bar"></div>';
+                mobilePanel.appendChild(latch);
+                // コンテンツ
+                const content = document.createElement('div');
+                content.className = 'panel-content';
+                content.appendChild(sec);
+                mobilePanel.appendChild(content);
+                mobilePanel.classList.add('open');
+                rebindPanelEvents();
+                bindPanelSwipe(latch);
+            }
+        }
+
+        document.querySelectorAll('.mf-btn.menu').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const panel = btn.dataset.panel;
+                if (activeMobilePanel === panel) {
+                    closeMobilePanel();
+                    return;
+                }
+                if (activeMobilePanel) {
+                    // 先に引っ込めてから新しいのを出す
+                    mobilePanel.classList.remove('open');
+                    setTimeout(() => {
+                        openMobileSection(panel, btn);
+                    }, 300);
+                } else {
+                    openMobileSection(panel, btn);
+                }
+            });
+        });
+
+        function returnSectionsToSidebar() {
+            const sections = Array.from(mobilePanel.querySelectorAll('.section'));
+            const sidebar = document.querySelector('.sidebar');
+            sections.forEach(sec => {
+                const title = sec.querySelector('.section-title');
+                if (!title) return;
+                const num = title.textContent.match(/^(\d+)/);
+                if (num) {
+                    const allSecs = Array.from(sidebar.querySelectorAll(':scope > .section'));
+                    let inserted = false;
+                    for (const existing of allSecs) {
+                        const et = existing.querySelector('.section-title');
+                        if (!et) continue;
+                        const en = et.textContent.match(/^(\d+)/);
+                        if (en && parseInt(en[1]) > parseInt(num[1])) {
+                            sidebar.insertBefore(sec, existing);
+                            inserted = true;
+                            break;
+                        }
+                    }
+                    if (!inserted) sidebar.appendChild(sec);
+                } else {
+                    const firstSec = sidebar.querySelector(':scope > .section');
+                    if (firstSec) sidebar.insertBefore(sec, firstSec);
+                    else sidebar.appendChild(sec);
+                }
+            });
+        }
+
+        function closeMobilePanel() {
+            mobilePanel.classList.remove('dragging');
+            mobilePanel.style.transform = '';
+            mobilePanel.classList.remove('open');
+            document.querySelectorAll('.mf-btn.menu').forEach(b => b.classList.remove('active'));
+            activeMobilePanel = null;
+            setTimeout(() => {
+                returnSectionsToSidebar();
+                mobilePanel.innerHTML = '';
+            }, 320);
+        }
+
+        // ラッチスワイプで閉じる
+        function bindPanelSwipe(latch) {
+            let startY = 0, currentY = 0, dragging = false;
+
+            function onStart(e) {
+                dragging = true;
+                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                currentY = startY;
+                mobilePanel.classList.add('dragging');
+            }
+            function onMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                const dy = Math.max(0, currentY - startY);
+                mobilePanel.style.transform = 'translateY(' + dy + 'px)';
+            }
+            function onEnd() {
+                if (!dragging) return;
+                dragging = false;
+                mobilePanel.classList.remove('dragging');
+                const dy = currentY - startY;
+                if (dy > 60) {
+                    closeMobilePanel();
+                } else {
+                    mobilePanel.style.transform = '';
+                    mobilePanel.classList.add('open');
+                }
+            }
+
+            latch.addEventListener('touchstart', onStart, { passive: true });
+            latch.addEventListener('mousedown', onStart);
+            document.addEventListener('touchmove', e => { if (dragging) onMove(e); }, { passive: false });
+            document.addEventListener('mousemove', e => { if (dragging) onMove(e); });
+            document.addEventListener('touchend', onEnd);
+            document.addEventListener('mouseup', onEnd);
+        }
+
+        function rebindPanelEvents() {
+            const panelIntensity = mobilePanel.querySelector('#intensitySlider');
+            if (panelIntensity) {
+                bindSlider(panelIntensity, 0, 100, pct => {
+                    dummyIntensityVal = pct;
+                    panelIntensity.style.setProperty('--value', pct + '%');
+                    $('intensityInput').value = pct;
+                });
+            }
+            const panelDummySize = mobilePanel.querySelector('#dummySizeSlider');
+            if (panelDummySize) {
+                bindSlider(panelDummySize, 3, 50, pct => {
+                    const old = dummySizePct;
+                    dummySizePct = pct;
+                    panelDummySize.style.setProperty('--value', (pct / 50 * 100) + '%');
+                    $('dummySizeInput').value = pct;
+                    resizeDummyBg(old, pct);
+                    prevDummySizePct = pct;
+                });
+            }
+            const panelMaxSize = mobilePanel.querySelector('#maxSizeSlider');
+            if (panelMaxSize) {
+                bindSlider(panelMaxSize, 5, 80, pct => {
+                    const old = maxSizePct;
+                    maxSizePct = pct;
+                    panelMaxSize.style.setProperty('--value', (pct / 80 * 100) + '%');
+                    $('maxSizeInput').value = pct;
+                    if (stickers.length > 0) resizeAllStickers(old, pct);
+                    prevMaxSizePct = pct;
+                });
+            }
+        }
+
+        // フッターのアクションボタン
+        $('mfBomb').addEventListener('click', () => { closeMobilePanel(); bomb(); });
+        $('mfAdd').addEventListener('click', () => { closeMobilePanel(); addMore(); });
+        $('mfClear').addEventListener('click', () => {
+            if (bombCountdownActive) return;
+            closeMobilePanel();
+            clearAllWithBtn($('mfClear'));
+        });
+
+        // モバイルフッターのボタン状態もupdateUIで更新
+        const _origUpdateUI = updateUI;
+        updateUI = function() {
+            _origUpdateUI();
+            const hasImg = uploadedImages.length > 0;
+            const hasStk = stickers.length > 0;
+            if ($('mfBomb')) { $('mfBomb').disabled = !hasImg; }
+            if ($('mfAdd')) { $('mfAdd').disabled = !hasImg; }
+            if ($('mfClear')) { $('mfClear').disabled = !hasStk; }
+        };
+
+        // PC↔モバイル切り替え時の処理
+        let lastWasMobile = window.innerWidth < 1024;
+        window.addEventListener('resize', () => {
+            const isMobile = window.innerWidth < 1024;
+
+            // パネルを閉じてセクションを戻す
+            if (!isMobile && activeMobilePanel) {
+                returnSectionsToSidebar();
+                mobilePanel.innerHTML = '';
+                mobilePanel.classList.remove('open');
+                document.querySelectorAll('.mf-btn.menu').forEach(b => b.classList.remove('active'));
+                activeMobilePanel = null;
+            }
+
+            // 平面シェイプの場合、画面比率に合わせてキャンバスサイズ再計算
+            if (canvasShape === 'flat' && isMobile !== lastWasMobile) {
+                const s = calcDefaultCanvasSize();
+                canvasSize.w = s.w; canvasSize.h = s.h;
+                flatSize.w = s.w; flatSize.h = s.h;
+                applyCanvasSize();
+                renderCanvas();
+            }
+            lastWasMobile = isMobile;
+        });
+
+        // === LET'S BOMB! ウィザード ===
+        let wizImages = [];
+
+        $('wizardTrigger').addEventListener('click', () => {
+            wizImages = [];
+            $('wizPreview').innerHTML = '';
+            $('wizBombBtn').disabled = true;
+            $('wizStep1').classList.remove('hidden');
+            $('wizStep2').classList.add('hidden');
+            $('wizardOverlay').classList.remove('hidden');
+        });
+
+        $('wizFileInput').addEventListener('change', e => {
+            Array.from(e.target.files || []).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const img = new Image();
+                    img.onload = () => {
+                        wizImages.push({ src: ev.target.result, naturalW: img.naturalWidth, naturalH: img.naturalHeight });
+                        const preview = document.createElement('img');
+                        preview.src = ev.target.result;
+                        $('wizPreview').appendChild(preview);
+                        $('wizBombBtn').disabled = false;
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        });
+
+        function wizShowResult() {
+            $('wizStep1').classList.add('hidden');
+            $('wizStep2').classList.remove('hidden');
+            $('wizardOverlay').classList.remove('hidden');
+        }
+
+        function wizDoBomb() {
+            wizImages.forEach(wi => {
+                const existing = uploadedImages.find(u => u.src === wi.src);
+                if (!existing) {
+                    const id = genId();
+                    uploadedImages.push({ id, src: wi.src, naturalW: wi.naturalW, naturalH: wi.naturalH });
+                    imageFrequencies[id] = 30;
+                }
+            });
+            renderUploadGrid(); updateUI();
+
+            $('freqInput').value = 30;
+            const freqSl = $('freqSlider');
+            if (freqSl) freqSl.style.setProperty('--value', '100%');
+            maxSizePct = 10;
+            $('maxSizeInput').value = 10;
+            const maxSl = $('maxSizeSlider');
+            if (maxSl) maxSl.style.setProperty('--value', (10 / 80 * 100) + '%');
+
+            $('wizardOverlay').classList.add('hidden');
+
+            onBombComplete = wizShowResult;
+            bomb();
+        }
+
+        $('wizBombBtn').addEventListener('click', wizDoBomb);
+
+        $('wizAddMore').addEventListener('click', () => {
+            $('wizardOverlay').classList.add('hidden');
+            onBombComplete = wizShowResult;
+            addMore();
+        });
+
+        $('wizSave').addEventListener('click', () => {
+            exportImage('png');
+        });
+
+        $('wizClose1').addEventListener('click', () => {
+            $('wizardOverlay').classList.add('hidden');
+        });
+        $('wizClose2').addEventListener('click', () => {
+            $('wizardOverlay').classList.add('hidden');
+        });
+
+        // 初期キャンバスサイズ反映
+        applyCanvasSize();
+        document.querySelectorAll('#sizePresets .canvas-mode-btn').forEach(b => b.classList.remove('active'));
+        updateUI(); renderCanvas();
+    </script>
+</body>
+</html>
