@@ -225,7 +225,6 @@
 
         .canvas-wrapper {
             position: relative; display: flex; justify-content: center;
-            overflow: hidden;
         }
         .canvas-container {
             position: relative; width: 100%; aspect-ratio: 3/2;
@@ -246,6 +245,16 @@
             width: 16px; height: 16px; background: #facc15;
             border: 2px solid #171717; cursor: nwse-resize;
         }
+        .delete-handle {
+            position: absolute; left: -10px; top: -10px;
+            width: 22px; height: 22px; background: #ef4444;
+            border: 2px solid #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 900; font-size: 14px;
+            cursor: pointer; line-height: 1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+        .delete-handle:hover, .delete-handle:active { background: #dc2626; }
         .rotate-handle {
             position: absolute; left: 50%; top: -32px; transform: translateX(-50%);
             width: 20px; height: 20px; background: #facc15;
@@ -485,6 +494,18 @@
         }
 
         /* ダミーボムにゅっとスライド */
+        /* 自由変形の4点 */
+        .ft-point {
+            position: absolute; width: 16px; height: 16px;
+            background: #facc15; border: 2px solid #0a0a0a;
+            border-radius: 50%; transform: translate(-50%,-50%);
+            cursor: grab; z-index: 7500; touch-action: none;
+        }
+        .ft-point:active { background: #fde047; cursor: grabbing; }
+        .ft-outline {
+            position: absolute; inset: 0; pointer-events: none; z-index: 7400;
+        }
+
         .dummy-slide {
             max-height: 0;
             overflow: hidden;
@@ -593,6 +614,9 @@
             font-size: 3.5rem; font-weight: 900; color: #fff;
             text-shadow: 0 0 20px rgba(255,100,0,0.8), 0 2px 4px rgba(0,0,0,0.8);
             line-height: 1;
+            height: 3.5rem;
+            min-width: 5rem;
+            display: flex; align-items: center; justify-content: center;
             animation: countPulse 0.3s ease-out;
         }
         .bomb-countdown .tap-label {
@@ -887,6 +911,40 @@
                     </div>
                 </div>
                 <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">背景画像</h3>
+                    <label class="upload-area" style="padding:0.5rem;">
+                        <input type="file" accept="image/*" id="bgImageInput" style="display:none;">
+                        <div style="font-size:0.75rem;">画像を選択</div>
+                    </label>
+                    <div class="hidden" id="bgImageControls">
+                        <div style="margin-top:0.5rem;display:flex;gap:4px;align-items:center;font-size:0.7rem;color:#a3a3a3;">
+                            <span style="width:3em;flex-shrink:0;">サイズ</span>
+                            <div class="intensity-slider" id="bgImgSizeSlider" style="--value:50%;flex:1;"></div>
+                            <input type="number" id="bgImgSizeInput" value="100" min="10" max="500" class="frequency-select" style="width:50px;">
+                            <span style="font-size:0.6rem;color:#737373;">%</span>
+                        </div>
+                        <div style="margin-top:0.25rem;display:flex;gap:4px;align-items:center;font-size:0.7rem;color:#a3a3a3;">
+                            <span style="width:3em;flex-shrink:0;">X</span>
+                            <div class="intensity-slider" id="bgImgXSlider" style="--value:50%;flex:1;"></div>
+                            <input type="number" id="bgImgXInput" value="0" min="-500" max="500" class="frequency-select" style="width:50px;">
+                            <span style="font-size:0.6rem;color:#737373;">px</span>
+                        </div>
+                        <div style="margin-top:0.25rem;display:flex;gap:4px;align-items:center;font-size:0.7rem;color:#a3a3a3;">
+                            <span style="width:3em;flex-shrink:0;">Y</span>
+                            <div class="intensity-slider" id="bgImgYSlider" style="--value:50%;flex:1;"></div>
+                            <input type="number" id="bgImgYInput" value="0" min="-500" max="500" class="frequency-select" style="width:50px;">
+                            <span style="font-size:0.6rem;color:#737373;">px</span>
+                        </div>
+                        <div style="margin-top:0.25rem;display:flex;gap:4px;align-items:center;font-size:0.7rem;color:#a3a3a3;">
+                            <span style="width:3em;flex-shrink:0;">回転</span>
+                            <div class="intensity-slider" id="bgImgRotSlider" style="--value:50%;flex:1;"></div>
+                            <input type="number" id="bgImgRotInput" value="0" min="-180" max="180" class="frequency-select" style="width:50px;">
+                            <span style="font-size:0.6rem;color:#737373;">deg</span>
+                        </div>
+                        <button class="action-btn danger" id="bgImgRemove" style="width:100%;margin-top:0.5rem;">背景画像を削除</button>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
                     <h3 class="frequency-title" style="margin-bottom:0.5rem;">ダミーボム</h3>
                     <div class="dummy-toggle">
                         <div class="dummy-checkbox" id="dummyToggle"></div>
@@ -947,7 +1005,8 @@
 
             <!-- ターゲット -->
             <section class="section">
-                <h2 class="section-title">04 // TARGET</h2>
+                <h2 class="section-title">04 // STICKER LAYER</h2>
+                <h3 class="frequency-title" style="margin-bottom:0.5rem;">BOMB範囲</h3>
                 <div class="target-grid">
                     <button class="target-btn active" data-target="all">全体</button>
                     <button class="target-btn" data-target="center">中心</button>
@@ -959,6 +1018,62 @@
                             <span style="color:#facc15;font-size:0.75rem;">クリック: その地点を中心にBOMB</span><br>
                             <span style="color:#facc15;font-size:0.75rem;">ドラッグ: 範囲を指定してBOMB</span>
                         </div>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">透明度</h3>
+                    <div class="dummy-intensity">
+                        <div class="intensity-slider" id="opacitySlider" style="--value:100%;flex:1;"></div>
+                        <input type="number" id="opacityInput" value="100" min="0" max="100" class="frequency-select" style="width:50px;">
+                        <span style="font-size:0.625rem;color:#737373;">%</span>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">自由変形</h3>
+                    <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                        <button class="action-btn" id="freeTransformBtn" style="flex:1;">始点を選択</button>
+                        <button class="action-btn" id="freeTransformReset" style="flex:1;">リセット</button>
+                    </div>
+                    <div class="dummy-intensity">
+                        <span class="intensity-label" style="width:3em;flex-shrink:0;">拡大</span>
+                        <div class="intensity-slider" id="scale3dSlider" style="--value:31%;flex:1;"></div>
+                        <input type="number" id="scale3dInput" value="100" min="10" max="300" class="frequency-select" style="width:50px;">
+                        <span style="font-size:0.625rem;color:#737373;">%</span>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">オフセット</h3>
+                    <div class="dummy-intensity">
+                        <span class="intensity-label" style="width:3em;flex-shrink:0;">X</span>
+                        <div class="intensity-slider" id="offsetXSlider" style="--value:50%;flex:1;"></div>
+                        <input type="number" id="offsetXInput" value="0" min="-500" max="500" class="frequency-select" style="width:50px;">
+                        <span style="font-size:0.625rem;color:#737373;">px</span>
+                    </div>
+                    <div class="dummy-intensity" style="margin-top:0.25rem;">
+                        <span class="intensity-label" style="width:3em;flex-shrink:0;">Y</span>
+                        <div class="intensity-slider" id="offsetYSlider" style="--value:50%;flex:1;"></div>
+                        <input type="number" id="offsetYInput" value="0" min="-500" max="500" class="frequency-select" style="width:50px;">
+                        <span style="font-size:0.625rem;color:#737373;">px</span>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #404040;">
+                    <h3 class="frequency-title" style="margin-bottom:0.5rem;">透明マスク</h3>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button class="action-btn" id="maskToggle" style="flex:1;display:flex;align-items:center;justify-content:center;" title="マスクを描く">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="unmaskToggle" style="flex:1;display:flex;align-items:center;justify-content:center;" title="マスクを消す">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <line x1="8" y1="8" x2="16" y2="16"/>
+                                <line x1="16" y1="8" x2="8" y2="16"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="undoBtn" style="flex:1;" disabled>Undo</button>
+                        <button class="action-btn" id="redoBtn" style="flex:1;" disabled>Redo</button>
                     </div>
                 </div>
             </section>
@@ -1055,6 +1170,7 @@
         let mode = 'gichigichi';
         let targetArea = 'all';
         let customTarget = null;
+        let customVisible = true; // その他枠の表示状態
         let customDragRect = null; // { x, y, w, h }
         let customDragStart = null; // ドラッグ中の開始点
         let canvasShape = 'flat';
@@ -1302,8 +1418,10 @@
                 activeSlider = el;
                 activeSliderFn = ev => {
                     const r = el.getBoundingClientRect();
-                    const pct = Math.max(min, Math.min(max, Math.round((getClientX(ev) - r.left) / r.width * max)));
-                    onUpdate(pct);
+                    const ratio = Math.max(0, Math.min(1, (getClientX(ev) - r.left) / r.width));
+                    const val = Math.round(min + ratio * (max - min));
+                    el.style.setProperty('--value', (ratio * 100) + '%');
+                    onUpdate(val);
                 };
                 activeSliderFn(e);
             }
@@ -1506,7 +1624,7 @@
             });
         }
 
-        // BOMB
+        // BOMB（マスク・BOMB範囲・自由変形はリセットしない）
         function bomb() {
             if (uploadedImages.length === 0) return;
             stickers.length = 0;
@@ -1694,7 +1812,11 @@
                             y: Math.max(-op, Math.min(canvasSize.h + op - size, customTarget.y - r/2 + Math.random() * r))
                         };
                     }
-                    return { x: canvasSize.w * 0.35, y: canvasSize.h * 0.35 };
+                    // customだけど範囲未指定 → 全体にフォールバック
+                    return {
+                        x: -op + Math.random() * (canvasSize.w + op * 2 - size),
+                        y: -op + Math.random() * (canvasSize.h + op * 2 - size)
+                    };
                 default:
                     return {
                         x: -op + Math.random() * (canvasSize.w + op * 2 - size),
@@ -1771,8 +1893,10 @@
                 bombEl.style.top = '35%';
                 bombEl.style.transform = 'translateX(-50%) rotate(360deg)';
                 bombEl.classList.add('fuse');
-                bombEl.addEventListener('click', cancel);
-                bombEl.addEventListener('touchend', e => { e.preventDefault(); cancel(); });
+                bombEl.addEventListener('pointerdown', e => {
+                    if (e.cancelable) e.preventDefault();
+                    cancel();
+                });
 
                 const numEl = cdEl.querySelector('.count-num');
                 let count = 3;
@@ -1815,6 +1939,23 @@
             if (stickers.length === 0) { renderUploadGrid(); renderCanvas(); updateUI(); return; }
             bombCountdown(() => {
                 stickers.length = 0;
+                // 消しゴムリセット
+                eraserPaths = [];
+                // BOMB範囲リセット
+                targetArea = 'all';
+                customTarget = null;
+                customDragRect = null;
+                customVisible = false;
+                document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+                const allBtn = document.querySelector('.target-btn[data-target="all"]');
+                if (allBtn) allBtn.classList.add('active');
+                $('customTargetSlide').classList.remove('open');
+                canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+                // 自由変形リセット
+                ftInitial = null;
+                ftPoints = null;
+                ftMatrix = null;
+                if (typeof ftSetIdle === 'function') ftSetIdle();
                 renderUploadGrid(); renderCanvas(); updateUI();
             }, btn);
         }
@@ -1829,20 +1970,66 @@
             });
         });
 
-        // ターゲット
+        // ターゲット（もう一度押すと選択解除）
+        function clearTargetVisuals() {
+            customTarget = null;
+            customDragRect = null;
+            canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+        }
+
         document.querySelectorAll('.target-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                targetArea = btn.dataset.target;
-                $('customTargetSlide').classList.toggle('open', targetArea === 'custom');
-                if (targetArea !== 'custom') {
-                    customTarget = null;
-                    customDragRect = null;
-                    canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+                const target = btn.dataset.target;
+                if (target === 'custom' && targetArea === 'custom') {
+                    // その他が点灯中 → 枠表示/非表示トグル（ボタンは点灯のまま、データ保持）
+                    if (customVisible) {
+                        hideCustomVisuals();
+                    } else {
+                        // 4点枠と競合するので、4点は非表示に
+                        if (ftState === 'editing' && ftVisible) ftHideVisuals();
+                        restoreTargetVisuals();
+                    }
+                } else {
+                    // 別ボタン切替
+                    document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    targetArea = target;
+                    $('customTargetSlide').classList.toggle('open', target === 'custom');
+                    if (target === 'custom') {
+                        if (ftState === 'editing' && ftVisible) ftHideVisuals();
+                        restoreTargetVisuals();
+                    } else {
+                        hideCustomVisuals();
+                    }
                 }
             });
         });
+
+        function hideCustomVisuals() {
+            customVisible = false;
+            canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+        }
+        function hideTargetVisualsOnly() {
+            canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+        }
+        function restoreTargetVisuals() {
+            customVisible = true;
+            hideTargetVisualsOnly();
+            if (customDragRect && customDragRect.w > 10) {
+                const rect = document.createElement('div');
+                rect.className = 'target-rect';
+                rect.style.cssText = 'position:absolute;border:2px dashed #facc15;background:rgba(250,204,21,0.1);pointer-events:none;z-index:7400;' +
+                    'left:' + (customDragRect.x / canvasSize.w * 100) + '%;top:' + (customDragRect.y / canvasSize.h * 100) + '%;' +
+                    'width:' + (customDragRect.w / canvasSize.w * 100) + '%;height:' + (customDragRect.h / canvasSize.h * 100) + '%;';
+                canvas.appendChild(rect);
+            } else if (customTarget) {
+                const ind = document.createElement('div');
+                ind.className = 'target-indicator';
+                ind.style.left = (customTarget.x / canvasSize.w * 100) + '%';
+                ind.style.top = (customTarget.y / canvasSize.h * 100) + '%';
+                canvas.appendChild(ind);
+            }
+        }
 
         // 平面時のユーザー設定サイズを保持
         let flatSize = { w: canvasSize.w, h: canvasSize.h };
@@ -1987,8 +2174,9 @@
         let renderScheduled = false;
 
         function renderCanvas() {
-            // 不要なDOM要素を削除
             canvas.querySelectorAll('.sticker, .dummy-bg-layer, .sticker-layer').forEach(el => el.remove());
+            // 背景画像を再描画
+            applyBgImage();
 
             // ダミー背景
             if (dummyBgDataUrl) {
@@ -2001,27 +2189,14 @@
 
             if (stickers.length === 0) return;
 
-            // オフスクリーンcanvasに全ステッカー（選択中以外）を描画
-            const off = document.createElement('canvas');
-            off.width = canvasSize.w; off.height = canvasSize.h;
-            const ctx = off.getContext('2d');
-
-            stickers.forEach((s, idx) => {
-                if (s.id === selectedId) return;
-                const img = getCachedImg(s.src);
-                if (!img.complete || !img.naturalWidth) return;
-                ctx.save();
-                ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
-                ctx.rotate(s.rotation * Math.PI / 180);
-                ctx.drawImage(img, -s.w / 2, -s.h / 2, s.w, s.h);
-                ctx.restore();
-            });
-
-            const layerImg = document.createElement('img');
-            layerImg.className = 'sticker-layer';
-            layerImg.src = off.toDataURL('image/png');
-            layerImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;';
-            canvas.appendChild(layerImg);
+            // sticker-layer は canvas要素（画像合成+マスクを同じcanvasで処理）
+            const layerCanvas = document.createElement('canvas');
+            layerCanvas.className = 'sticker-layer';
+            layerCanvas.width = canvasSize.w;
+            layerCanvas.height = canvasSize.h;
+            layerCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;';
+            canvas.appendChild(layerCanvas);
+            drawStickerLayer();
 
             // 選択中のステッカーだけDOM要素で表示（ハンドル付き）
             if (selectedId) {
@@ -2035,16 +2210,24 @@
                         'top:' + (s.y / canvasSize.h * 100) + '%;' +
                         'width:' + (s.w / canvasSize.w * 100) + '%;' +
                         'height:' + (s.h / canvasSize.h * 100) + '%;' +
-                        'transform:rotate(' + s.rotation + 'deg);z-index:9990;';
+                        'transform:rotate(' + s.rotation + 'deg);z-index:9990;' +
+                        'opacity:' + (stickerOpacity / 100) + ';';
                     const img = document.createElement('img');
                     img.src = s.src; img.alt = ''; img.draggable = false;
                     el.appendChild(img);
                     const rh = document.createElement('div'); rh.className = 'resize-handle'; rh.dataset.action = 'resize'; el.appendChild(rh);
                     const rl = document.createElement('div'); rl.className = 'rotate-line'; el.appendChild(rl);
                     const ro = document.createElement('div'); ro.className = 'rotate-handle'; ro.dataset.action = 'rotate'; el.appendChild(ro);
+                    const del = document.createElement('div'); del.className = 'delete-handle'; del.dataset.action = 'delete'; del.textContent = '\u00D7'; el.appendChild(del);
                     canvas.appendChild(el);
                 }
             }
+
+            // イレーサー調整レイヤー再適用
+            renderEraserLayer();
+            // オフセット・3D再適用
+            applyOffset();
+            apply3d();
         }
 
         // ドラッグ中は軽量な再描画（選択中のDOM要素だけ更新）
@@ -2083,6 +2266,15 @@
         }
 
         // === ピンチズーム＋2本指パン ===
+        // wrapper空白部分タップで枠非表示
+        document.querySelector('.canvas-wrapper').addEventListener('pointerdown', e => {
+            if (e.target === e.currentTarget) {
+                if (targetArea === 'custom' && customVisible) hideCustomVisuals();
+                if (ftState === 'editing' && ftVisible) ftHideVisuals();
+            }
+        });
+
+
         let canvasZoom = 1;
         let canvasPanX = 0, canvasPanY = 0;
         let pinchState = null;
@@ -2149,14 +2341,26 @@
         });
 
         canvas.addEventListener('pointerdown', e => {
+            // 4点editing+枠表示中にキャンバスタップ → 枠非表示のみ（マスクON/OFF関係なし）
+            if (ftState === 'editing' && ftVisible
+                && !e.target.classList.contains('ft-point')) {
+                ftHideVisuals();
+                e.preventDefault();
+                return;
+            }
+            // イレーサーモード中はステッカー操作を無効化
+            if (eraserMode || freeTransformMode) return;
+
             const r = canvas.getBoundingClientRect(), sc = canvasSize.w / r.width;
             const px = (e.clientX - r.left) * sc, py = (e.clientY - r.top) * sc;
 
             // カスタムターゲット（ドラッグ範囲 or クリック中心）
-            if (targetArea === 'custom' && !e.target.closest('.sticker')) {
+            // custom枠が表示中の時のみ動作（ボタンactiveでも枠非表示なら動かない）
+            if (targetArea === 'custom' && customVisible && !e.target.closest('.sticker')) {
                 e.preventDefault();
                 customDragStart = { x: px, y: py };
                 customDragRect = null;
+                customTarget = null;
                 canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
                 return;
             }
@@ -2165,6 +2369,11 @@
             const sEl = e.target.closest('.sticker');
             if (sEl && e.target.dataset.action) {
                 e.preventDefault(); e.stopPropagation();
+                // 削除ハンドル
+                if (e.target.dataset.action === 'delete') {
+                    delSel();
+                    return;
+                }
                 const sticker = stickers.find(s => s.id === selectedId); if (!sticker) return;
                 dragState = {
                     action: e.target.dataset.action, stickerId: selectedId,
@@ -2199,7 +2408,7 @@
                     canvas.querySelectorAll('.target-rect').forEach(el => el.remove());
                     const rect = document.createElement('div');
                     rect.className = 'target-rect';
-                    rect.style.cssText = 'position:absolute;border:2px dashed #facc15;background:rgba(250,204,21,0.1);pointer-events:none;z-index:9990;' +
+                    rect.style.cssText = 'position:absolute;border:2px dashed #facc15;background:rgba(250,204,21,0.1);pointer-events:none;z-index:7400;' +
                         'left:' + (x / canvasSize.w * 100) + '%;top:' + (y / canvasSize.h * 100) + '%;' +
                         'width:' + (w / canvasSize.w * 100) + '%;height:' + (h / canvasSize.h * 100) + '%;';
                     canvas.appendChild(rect);
@@ -2583,6 +2792,7 @@
         bomb = function() {
             if (uploadedImages.length === 0) return;
             stickers.length = 0;
+            // マスク・BOMB範囲・自由変形はリセットしない
 
             const afterDummy = () => {
                 const tempStickers = [];
@@ -2676,6 +2886,7 @@
         function openMobileSection(panel, btn) {
             document.querySelectorAll('.mf-btn.menu').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            // 枠は残したまま別メニューを開く
             activeMobilePanel = panel;
             const sec = sectionMap[panel];
             if (sec) {
@@ -2756,6 +2967,41 @@
                 mobilePanel.innerHTML = '';
             }, 320);
         }
+
+        // 表示だけ消してデータは保持
+        function hideAllOverlays() {
+            canvas.querySelectorAll('.target-indicator, .target-rect').forEach(el => el.remove());
+            document.querySelectorAll('.ft-point, .ft-outline').forEach(el => el.remove());
+            // picking中は中断（データは捨てる）
+            if (ftState === 'picking') ftSetIdle();
+        }
+
+        // 同じメニューに戻った時に再表示
+        function restoreOverlays() {
+            // カスタムターゲット
+            if (targetArea === 'custom') {
+                if (customDragRect && customDragRect.w > 10) {
+                    const rect = document.createElement('div');
+                    rect.className = 'target-rect';
+                    rect.style.cssText = 'position:absolute;border:2px dashed #facc15;background:rgba(250,204,21,0.1);pointer-events:none;z-index:7400;' +
+                        'left:' + (customDragRect.x / canvasSize.w * 100) + '%;top:' + (customDragRect.y / canvasSize.h * 100) + '%;' +
+                        'width:' + (customDragRect.w / canvasSize.w * 100) + '%;height:' + (customDragRect.h / canvasSize.h * 100) + '%;';
+                    canvas.appendChild(rect);
+                } else if (customTarget) {
+                    const ind = document.createElement('div');
+                    ind.className = 'target-indicator';
+                    ind.style.left = (customTarget.x / canvasSize.w * 100) + '%';
+                    ind.style.top = (customTarget.y / canvasSize.h * 100) + '%';
+                    canvas.appendChild(ind);
+                }
+            }
+            // 4点編集中 かつ ftVisible=true なら再表示
+            if (ftState === 'editing' && ftPoints && ftVisible) {
+                showFtPoints();
+            }
+        }
+
+        function clearAllOverlays() { hideAllOverlays(); }
 
         // ラッチスワイプで閉じる
         function bindPanelSwipe(latch) {
@@ -2953,6 +3199,733 @@
         $('wizClose2').addEventListener('click', () => {
             $('wizardOverlay').classList.add('hidden');
         });
+
+        // === 背景画像 ===
+        let bgImageData = null; // { src, size:100, x:0, y:0, rot:0 }
+        let bgImageEl = null;
+
+        $('bgImageInput').addEventListener('change', e => {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                bgImageData = { src: ev.target.result, size: 100, x: 0, y: 0, rot: 0 };
+                $('bgImageControls').classList.remove('hidden');
+                $('bgImgSizeInput').value = 100;
+                $('bgImgXInput').value = 0;
+                $('bgImgYInput').value = 0;
+                $('bgImgRotInput').value = 0;
+                $('bgImgSizeSlider').style.setProperty('--value', '20%');
+                $('bgImgXSlider').style.setProperty('--value', '50%');
+                $('bgImgYSlider').style.setProperty('--value', '50%');
+                $('bgImgRotSlider').style.setProperty('--value', '50%');
+                applyBgImage();
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        function applyBgImage() {
+            let el = canvas.querySelector('.bg-image-layer');
+            if (!bgImageData) { if (el) el.remove(); return; }
+            if (!el) {
+                el = document.createElement('img');
+                el.className = 'bg-image-layer';
+                el.style.cssText = 'position:absolute;pointer-events:none;z-index:0;';
+                canvas.insertBefore(el, canvas.firstChild);
+            }
+            el.src = bgImageData.src;
+            el.style.width = bgImageData.size + '%';
+            el.style.height = 'auto';
+            el.style.left = (50 + bgImageData.x / canvasSize.w * 100) + '%';
+            el.style.top = (50 + bgImageData.y / canvasSize.h * 100) + '%';
+            el.style.transform = 'translate(-50%,-50%) rotate(' + (bgImageData.rot || 0) + 'deg)';
+        }
+
+        bindSlider($('bgImgSizeSlider'), 10, 500, pct => {
+            if (!bgImageData) return;
+            bgImageData.size = pct;
+            $('bgImgSizeInput').value = pct;
+            applyBgImage();
+        });
+        $('bgImgSizeInput').addEventListener('change', e => {
+            if (!bgImageData) return;
+            bgImageData.size = Math.max(10, Math.min(500, parseInt(e.target.value) || 100));
+            e.target.value = bgImageData.size;
+            $('bgImgSizeSlider').style.setProperty('--value', (bgImageData.size / 500 * 100) + '%');
+            applyBgImage();
+        });
+        bindSlider($('bgImgXSlider'), -500, 500, v => {
+            if (!bgImageData) return;
+            bgImageData.x = v;
+            $('bgImgXInput').value = v;
+            applyBgImage();
+        });
+        $('bgImgXInput').addEventListener('change', e => {
+            if (!bgImageData) return;
+            bgImageData.x = Math.max(-500, Math.min(500, parseInt(e.target.value) || 0));
+            e.target.value = bgImageData.x;
+            applyBgImage();
+        });
+        bindSlider($('bgImgYSlider'), -500, 500, v => {
+            if (!bgImageData) return;
+            bgImageData.y = v;
+            $('bgImgYInput').value = v;
+            applyBgImage();
+        });
+        $('bgImgYInput').addEventListener('change', e => {
+            if (!bgImageData) return;
+            bgImageData.y = Math.max(-500, Math.min(500, parseInt(e.target.value) || 0));
+            e.target.value = bgImageData.y;
+            applyBgImage();
+        });
+        bindSlider($('bgImgRotSlider'), 0, 360, v => {
+            if (!bgImageData) return;
+            bgImageData.rot = v - 180;
+            $('bgImgRotInput').value = bgImageData.rot;
+            applyBgImage();
+        });
+        $('bgImgRotInput').addEventListener('change', e => {
+            if (!bgImageData) return;
+            bgImageData.rot = Math.max(-180, Math.min(180, parseInt(e.target.value) || 0));
+            e.target.value = bgImageData.rot;
+            $('bgImgRotSlider').style.setProperty('--value', ((bgImageData.rot + 180) / 360 * 100) + '%');
+            applyBgImage();
+        });
+        $('bgImgRemove').addEventListener('click', () => {
+            bgImageData = null;
+            $('bgImageControls').classList.add('hidden');
+            const el = canvas.querySelector('.bg-image-layer');
+            if (el) el.remove();
+        });
+
+        // === ステッカー透明度 ===
+        let stickerOpacity = 100;
+        bindSlider($('opacitySlider'), 0, 100, pct => {
+            stickerOpacity = pct;
+            $('opacityInput').value = pct;
+            renderCanvas();
+        });
+        $('opacityInput').addEventListener('change', e => {
+            stickerOpacity = Math.max(0, Math.min(100, parseInt(e.target.value) || 100));
+            e.target.value = stickerOpacity;
+            $('opacitySlider').style.setProperty('--value', stickerOpacity + '%');
+            renderCanvas();
+        });
+
+        // === 3D調整 ===
+        let rotateX3d = 0, rotateY3d = 0, perspective3d = 0, scale3d = 100;
+
+        function apply3d() {
+            const layer = canvas.querySelector('.sticker-layer');
+            const sel = canvas.querySelector('.sticker.selected');
+            const sc = scale3d / 100;
+            const baseT = 'translate(' + offsetX + 'px,' + offsetY + 'px) scale(' + sc + ')';
+            if (perspective3d > 0) {
+                canvas.style.perspective = perspective3d + 'px';
+                const t3d = 'rotateX(' + rotateX3d + 'deg) rotateY(' + rotateY3d + 'deg)';
+                if (layer) layer.style.transform = t3d + ' ' + baseT;
+                if (sel) sel.style.transform += ' ' + t3d + ' scale(' + sc + ')';
+            } else {
+                canvas.style.perspective = '';
+                if (layer) layer.style.transform = baseT;
+                if (sel) sel.style.transform += ' scale(' + sc + ')';
+            }
+        }
+
+        bindSlider($('scale3dSlider'), 10, 300, v => {
+            scale3d = v;
+            $('scale3dInput').value = v;
+            apply3d();
+        });
+        $('scale3dInput').addEventListener('change', e => {
+            scale3d = Math.max(10, Math.min(300, parseInt(e.target.value) || 100));
+            e.target.value = scale3d;
+            $('scale3dSlider').style.setProperty('--value', ((scale3d - 10) / 290 * 100) + '%');
+            apply3d();
+        });
+
+        // === オフセット ===
+        let offsetX = 0, offsetY = 0;
+
+        function applyOffset() { apply3d(); }
+
+        bindSlider($('offsetXSlider'), -500, 500, v => {
+            offsetX = v;
+            $('offsetXInput').value = v;
+            applyOffset();
+        });
+        $('offsetXInput').addEventListener('change', e => {
+            offsetX = Math.max(-500, Math.min(500, parseInt(e.target.value) || 0));
+            e.target.value = offsetX;
+            $('offsetXSlider').style.setProperty('--value', ((offsetX + 500) / 1000 * 100) + '%');
+            applyOffset();
+        });
+        bindSlider($('offsetYSlider'), -500, 500, v => {
+            offsetY = v;
+            $('offsetYInput').value = v;
+            applyOffset();
+        });
+        $('offsetYInput').addEventListener('change', e => {
+            offsetY = Math.max(-500, Math.min(500, parseInt(e.target.value) || 0));
+            e.target.value = offsetY;
+            $('offsetYSlider').style.setProperty('--value', ((offsetY + 500) / 1000 * 100) + '%');
+            applyOffset();
+        });
+
+        // === 透明マスク ===
+        let eraserMode = false;         // ON中か
+        let eraserOp = 'mask';          // 'mask' or 'unmask'
+        let eraserPaths = [];           // 各 path: {x,y,r,mode}
+        let eraserDrawing = false;
+        let eraserSize = 20;
+
+        // sticker-layer（canvas要素）にステッカーを合成し、マスクを適用する統合関数
+        // この関数1つで「画像描画＋マスク穴開け」を同じcanvasで完結 → 変形と完全同期
+        function drawStickerLayer() {
+            const layer = canvas.querySelector('.sticker-layer');
+            if (!layer || layer.tagName !== 'CANVAS') return;
+            const ctx = layer.getContext('2d');
+            ctx.clearRect(0, 0, layer.width, layer.height);
+
+            // ステッカー（選択中以外）を合成
+            stickers.forEach(s => {
+                if (s.id === selectedId) return;
+                const img = getCachedImg(s.src);
+                if (!img.complete || !img.naturalWidth) return;
+                ctx.save();
+                ctx.globalAlpha = stickerOpacity / 100;
+                ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
+                ctx.rotate(s.rotation * Math.PI / 180);
+                ctx.drawImage(img, -s.w / 2, -s.h / 2, s.w, s.h);
+                ctx.restore();
+            });
+
+            // マスクパスを適用（画面上で円になるよう layer 空間で多角形として保存されている）
+            ctx.globalAlpha = 1;
+            function tracePolygon(poly) {
+                ctx.beginPath();
+                ctx.moveTo(poly[0].x, poly[0].y);
+                for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
+                ctx.closePath();
+            }
+            eraserPaths.forEach(p => {
+                ctx.save();
+                if (p.mode === 'unmask') {
+                    // マスクを戻す：その多角形内をステッカーで再描画
+                    if (p.polygon) {
+                        tracePolygon(p.polygon);
+                        ctx.clip();
+                        stickers.forEach(s => {
+                            if (s.id === selectedId) return;
+                            const img = getCachedImg(s.src);
+                            if (!img.complete || !img.naturalWidth) return;
+                            ctx.save();
+                            ctx.globalAlpha = stickerOpacity / 100;
+                            ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
+                            ctx.rotate(s.rotation * Math.PI / 180);
+                            ctx.drawImage(img, -s.w / 2, -s.h / 2, s.w, s.h);
+                            ctx.restore();
+                        });
+                    }
+                } else {
+                    // mask: 多角形内に穴を開ける（destination-out）
+                    ctx.globalCompositeOperation = 'destination-out';
+                    if (p.polygon) {
+                        tracePolygon(p.polygon);
+                        ctx.fill();
+                    }
+                }
+                ctx.restore();
+            });
+        }
+
+        // マスクのみ再適用（ステッカー構成は変わらない時用）
+        function renderEraserLayer() {
+            drawStickerLayer();
+        }
+
+        function eraserDraw(x, y) {
+            eraserPaths.push({ x, y, r: eraserSize, mode: eraserOp });
+            drawStickerLayer();
+        }
+
+        function updateMaskButtons() {
+            const maskBtn = $('maskToggle');
+            const unmaskBtn = $('unmaskToggle');
+            const maskActive = eraserMode && eraserOp === 'mask';
+            const unmaskActive = eraserMode && eraserOp === 'unmask';
+            maskBtn.style.background = maskActive ? '#facc15' : '';
+            maskBtn.style.color = maskActive ? '#0a0a0a' : '';
+            unmaskBtn.style.background = unmaskActive ? '#facc15' : '';
+            unmaskBtn.style.color = unmaskActive ? '#0a0a0a' : '';
+            canvas.style.cursor = eraserMode ? 'crosshair' : '';
+        }
+
+        function toggleMaskMode(op) {
+            if (eraserMode && eraserOp === op) {
+                eraserMode = false;
+            } else {
+                eraserMode = true;
+                eraserOp = op;
+                selectedId = null;
+                renderCanvas(); updateUI();
+            }
+            updateMaskButtons();
+        }
+
+        $('maskToggle').addEventListener('click', () => toggleMaskMode('mask'));
+        $('unmaskToggle').addEventListener('click', () => toggleMaskMode('unmask'));
+
+        // 画面座標→ステッカーレイヤー内座標（transform逆変換対応）
+        function screenToLayerCoords(clientX, clientY) {
+            const r = canvas.getBoundingClientRect();
+            const px = clientX - r.left;
+            const py = clientY - r.top;
+            const layer = canvas.querySelector('.sticker-layer');
+            if (layer) {
+                const transform = window.getComputedStyle(layer).transform;
+                if (transform && transform !== 'none') {
+                    try {
+                        const m = new DOMMatrix(transform);
+                        const inv = m.inverse();
+                        const p = inv.transformPoint(new DOMPoint(px, py));
+                        // perspective対応: 同次座標を正規化 (x/w, y/w)
+                        const w = p.w || 1;
+                        return {
+                            x: (p.x / w) / r.width * canvasSize.w,
+                            y: (p.y / w) / r.height * canvasSize.h
+                        };
+                    } catch(e) {}
+                }
+            }
+            return { x: px / r.width * canvasSize.w, y: py / r.height * canvasSize.h };
+        }
+
+        // 画面座標 (clientX, clientY, radius) から layer 座標系の多角形を生成
+        // これで自由変形中も画面上で常に円に見える
+        function screenCircleToLayerPolygon(clientX, clientY, radiusPx) {
+            const samples = 24;
+            const pts = [];
+            for (let i = 0; i < samples; i++) {
+                const a = (i / samples) * Math.PI * 2;
+                const sx = clientX + Math.cos(a) * radiusPx;
+                const sy = clientY + Math.sin(a) * radiusPx;
+                pts.push(screenToLayerCoords(sx, sy));
+            }
+            return pts;
+        }
+
+        canvas.addEventListener('pointerdown', e => {
+            if (!eraserMode) return;
+            // 4点ハンドル表示中はマスクを無効化（4点タップ時にマスクが描かれないように）
+            if (ftState === 'picking' || (ftState === 'editing' && ftVisible)) return;
+            e.preventDefault(); e.stopPropagation();
+            eraserDrawing = true;
+            saveUndoState();
+            eraserDrawScreen(e.clientX, e.clientY);
+        }, true);
+
+        document.addEventListener('pointermove', e => {
+            if (!eraserDrawing) return;
+            eraserDrawScreen(e.clientX, e.clientY);
+        });
+
+        function eraserDrawScreen(clientX, clientY) {
+            // 画面上で円 → layer座標系で多角形として保存
+            const r = canvas.getBoundingClientRect();
+            // eraserSize は画面上の CSS px 半径
+            const polygon = screenCircleToLayerPolygon(clientX, clientY, eraserSize);
+            eraserPaths.push({ polygon, mode: eraserOp });
+            drawStickerLayer();
+        }
+
+        document.addEventListener('pointerup', () => { eraserDrawing = false; });
+
+        // === 自由変形（4点指定 → matrix3d） ===
+        let freeTransformMode = false;
+        let ftPoints = null; // ハンドル現在位置
+        let ftInitial = null; // 4点クリック時の初期位置（変形の基準点）
+        let ftMatrix = null;
+
+        function computeMatrix3d(src, dst) {
+            // src: 元の4隅 [{x,y}...], dst: 変形先の4隅
+            // Perspective transform: 8連立方程式を解いてmatrix3dを生成
+            function solve(s, d) {
+                const A = [];
+                const b = [];
+                for (let i = 0; i < 4; i++) {
+                    A.push([s[i].x, s[i].y, 1, 0, 0, 0, -d[i].x*s[i].x, -d[i].x*s[i].y]);
+                    b.push(d[i].x);
+                    A.push([0, 0, 0, s[i].x, s[i].y, 1, -d[i].y*s[i].x, -d[i].y*s[i].y]);
+                    b.push(d[i].y);
+                }
+                // ガウス消去法
+                const n = 8;
+                for (let col = 0; col < n; col++) {
+                    let maxRow = col;
+                    for (let row = col+1; row < n; row++) if (Math.abs(A[row][col]) > Math.abs(A[maxRow][col])) maxRow = row;
+                    [A[col], A[maxRow]] = [A[maxRow], A[col]];
+                    [b[col], b[maxRow]] = [b[maxRow], b[col]];
+                    if (Math.abs(A[col][col]) < 1e-10) return null;
+                    for (let row = col+1; row < n; row++) {
+                        const f = A[row][col] / A[col][col];
+                        for (let j = col; j < n; j++) A[row][j] -= f * A[col][j];
+                        b[row] -= f * b[col];
+                    }
+                }
+                const x = new Array(n);
+                for (let i = n-1; i >= 0; i--) {
+                    x[i] = b[i];
+                    for (let j = i+1; j < n; j++) x[i] -= A[i][j] * x[j];
+                    x[i] /= A[i][i];
+                }
+                return x;
+            }
+
+            const h = solve(src, dst);
+            if (!h) return null;
+            // CSS matrix3d（列優先）
+            return 'matrix3d(' +
+                h[0]+','+h[3]+',0,'+h[6]+',' +
+                h[1]+','+h[4]+',0,'+h[7]+',' +
+                '0,0,1,0,' +
+                h[2]+','+h[5]+',0,1)';
+        }
+
+        function applyFreeTransform() {
+            if (!ftPoints || !ftInitial) return;
+            // canvasSize単位 → sticker-layer要素のCSS px単位に変換してmatrix計算
+            const lw = canvas.offsetWidth, lh = canvas.offsetHeight;
+            const sx = lw / canvasSize.w, sy = lh / canvasSize.h;
+            const srcPx = ftInitial.map(p => ({x: p.x * sx, y: p.y * sy}));
+            const dstPx = ftPoints.map(p => ({x: p.x * sx, y: p.y * sy}));
+            ftMatrix = computeMatrix3d(srcPx, dstPx);
+            // apply3d経由で適用（scaleと合成した単一matrix3dになる）
+            apply3d();
+            drawFtOutline();
+        }
+
+        function drawFtOutline() {
+            let svg = canvas.querySelector('.ft-outline');
+            if (!svg) {
+                svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+                svg.setAttribute('class','ft-outline');
+                svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7400;';
+                canvas.appendChild(svg);
+            }
+            const pts = ftPoints;
+            const toP = p => (p.x/canvasSize.w*100)+'%,'+(p.y/canvasSize.h*100)+'%';
+            svg.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">' +
+                '<polygon points="'+ pts.map(p=>p.x/canvasSize.w*100+','+p.y/canvasSize.h*100).join(' ') +'" fill="none" stroke="#facc15" stroke-width="0.3" stroke-dasharray="1,1"/></svg>';
+        }
+
+        function showFtPoints() {
+            const wrapper = document.querySelector('.canvas-wrapper');
+            wrapper.querySelectorAll('.ft-point').forEach(el => el.remove());
+            canvas.querySelector('.ft-outline')?.remove();
+            if (!ftPoints) return;
+            ftPoints.forEach((p, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'ft-point';
+                dot.dataset.idx = i;
+                // canvas上の座標をwrapper上の座標に変換
+                const cRect = canvas.getBoundingClientRect();
+                const wRect = wrapper.getBoundingClientRect();
+                const cxOffset = cRect.left - wRect.left;
+                const cyOffset = cRect.top - wRect.top;
+                dot.style.left = (cxOffset + p.x / canvasSize.w * cRect.width) + 'px';
+                dot.style.top = (cyOffset + p.y / canvasSize.h * cRect.height) + 'px';
+                wrapper.appendChild(dot);
+
+                let dragging = false;
+                function onDown(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    dragging = true;
+                }
+                function onMove(e) {
+                    if (!dragging) return;
+                    const cRect = canvas.getBoundingClientRect();
+                    const wRect = wrapper.getBoundingClientRect();
+                    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                    p.x = (cx - cRect.left) / cRect.width * canvasSize.w;
+                    p.y = (cy - cRect.top) / cRect.height * canvasSize.h;
+                    const cxOffset = cRect.left - wRect.left;
+                    const cyOffset = cRect.top - wRect.top;
+                    dot.style.left = (cxOffset + p.x / canvasSize.w * cRect.width) + 'px';
+                    dot.style.top = (cyOffset + p.y / canvasSize.h * cRect.height) + 'px';
+                    applyFreeTransform();
+                }
+                function onUp() { dragging = false; }
+                dot.addEventListener('mousedown', onDown);
+                dot.addEventListener('touchstart', onDown, {passive:false});
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, {passive:false});
+                document.addEventListener('mouseup', onUp);
+                document.addEventListener('touchend', onUp);
+            });
+            drawFtOutline();
+        }
+
+        // 自由変形の状態: 'idle' | 'picking' | 'editing' | 'hidden'
+        let ftState = 'idle';
+        let ftPickedPoints = [];
+
+        // target-btn.activeと同じスタイル（点灯）
+        function ftStyleOn() {
+            const btn = $('freeTransformBtn');
+            btn.style.background = 'rgba(250,204,21,0.1)';
+            btn.style.color = '#facc15';
+            btn.style.borderColor = '#facc15';
+            btn.style.border = '1px solid #facc15';
+        }
+        function ftStyleOff() {
+            const btn = $('freeTransformBtn');
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.border = '';
+            btn.style.borderColor = '';
+        }
+
+        function ftSetIdle() {
+            ftState = 'idle';
+            freeTransformMode = false;
+            document.querySelectorAll('.ft-point, .ft-outline').forEach(el => el.remove());
+            canvas.style.cursor = '';
+            $('freeTransformBtn').textContent = '始点を選択';
+            ftStyleOff();
+            // idle時は変形を解除
+            const layer = canvas.querySelector('.sticker-layer');
+            if (layer) layer.style.transform = '';
+        }
+
+        function turnOffMaskMode() {
+            if (eraserMode) {
+                eraserMode = false;
+                if (typeof updateMaskButtons === 'function') updateMaskButtons();
+            }
+        }
+
+        function ftSetPicking() {
+            turnOffMaskMode();
+            ftState = 'picking';
+            freeTransformMode = true;
+            ftPickedPoints = [];
+            selectedId = null;
+            renderCanvas(); updateUI();
+            canvas.style.cursor = 'crosshair';
+            $('freeTransformBtn').textContent = '4点を選択 (0/4)';
+            ftStyleOn();
+        }
+
+        function ftSetEditing() {
+            turnOffMaskMode();
+            ftState = 'editing';
+            ftVisible = true;
+            freeTransformMode = true;
+            canvas.style.cursor = '';
+            $('freeTransformBtn').textContent = '4点を選択 (4/4)';
+            ftStyleOn();
+            showFtPoints();
+            applyFreeTransform();
+        }
+
+        // 枠非表示状態: editing のまま枠だけ隠す（データ・変形は維持）
+        let ftVisible = true;
+        function ftHideVisuals() {
+            ftVisible = false;
+            freeTransformMode = false; // 枠なし = 他の操作可能に
+            document.querySelectorAll('.ft-point, .ft-outline').forEach(el => el.remove());
+            canvas.style.cursor = '';
+        }
+        function ftShowVisuals() {
+            turnOffMaskMode();
+            ftVisible = true;
+            freeTransformMode = true;
+            canvas.style.cursor = '';
+            showFtPoints();
+            applyFreeTransform();
+        }
+
+        function hideFtVisuals() {
+            document.querySelectorAll('.ft-point, .ft-outline').forEach(el => el.remove());
+        }
+
+        $('freeTransformBtn').addEventListener('click', () => {
+            if (ftState === 'idle') {
+                // 始めて押す: picking へ。その他の枠を非表示（customTargetはactiveのまま）
+                hideCustomVisuals();
+                ftSetPicking();
+            } else if (ftState === 'picking') {
+                // picking中押す: キャンセル
+                ftSetIdle();
+            } else if (ftState === 'editing') {
+                // 枠表示/非表示トグル
+                if (ftVisible) {
+                    ftHideVisuals();
+                } else {
+                    hideCustomVisuals();
+                    ftShowVisuals();
+                }
+            }
+        });
+
+        // 4点クリック処理（キャプチャフェーズ）
+        canvas.addEventListener('pointerdown', e => {
+            // editing + 枠非表示状態でキャンバスタップ → 新規picking（既存データ上書き）
+            // custom枠が表示中の場合はcustomが優先
+            if (ftState === 'editing' && !ftVisible && !e.target.classList.contains('ft-point')
+                && !eraserMode && !(e.target.closest && e.target.closest('.sticker'))
+                && !customVisible) {
+                ftMatrix = null;
+                ftPoints = null;
+                ftInitial = null;
+                const layer = canvas.querySelector('.sticker-layer');
+                if (layer) layer.style.transform = '';
+                ftSetPicking();
+            }
+            if (ftState !== 'picking') return;
+            e.preventDefault(); e.stopPropagation();
+            const r = canvas.getBoundingClientRect();
+            const x = (e.clientX - r.left) / r.width * canvasSize.w;
+            const y = (e.clientY - r.top) / r.height * canvasSize.h;
+            ftPickedPoints.push({x, y});
+
+            const dot = document.createElement('div');
+            dot.className = 'ft-point';
+            dot.style.left = (x / canvasSize.w * 100) + '%';
+            dot.style.top = (y / canvasSize.h * 100) + '%';
+            dot.style.pointerEvents = 'none';
+            canvas.appendChild(dot);
+
+            $('freeTransformBtn').textContent = '4点を選択 (' + ftPickedPoints.length + '/4)';
+
+            if (ftPickedPoints.length >= 4) {
+                ftInitial = ftPickedPoints.map(p => ({x:p.x, y:p.y}));
+                ftPoints = ftPickedPoints.map(p => ({x:p.x, y:p.y}));
+                ftPickedPoints = [];
+                canvas.querySelectorAll('.ft-point').forEach(el => el.remove());
+                ftSetEditing();
+            }
+        }, true);
+
+        $('freeTransformReset').addEventListener('click', () => {
+            ftSetIdle();
+            ftPoints = null;
+            ftInitial = null;
+            ftMatrix = null;
+            renderCanvas();
+        });
+
+        // apply3dを拡大＋自由変形統合に差し替え
+        const _origApply3d = apply3d;
+        apply3d = function() {
+            const layer = canvas.querySelector('.sticker-layer');
+            const sel = canvas.querySelector('.sticker.selected');
+            const sc = scale3d / 100;
+            if (ftMatrix) {
+                if (layer) {
+                    // ftMatrix と scale を1つのmatrix3dに合成（DOMMatrixの解釈を安定化）
+                    try {
+                        const m = new DOMMatrix(ftMatrix);
+                        m.scaleSelf(sc, sc, 1);
+                        layer.style.transformOrigin = '0 0';
+                        layer.style.transform = m.toString();
+                    } catch(e) {
+                        layer.style.transformOrigin = '0 0';
+                        layer.style.transform = ftMatrix + ' scale(' + sc + ')';
+                    }
+                }
+                if (sel) sel.style.transform += ' scale(' + sc + ')';
+                canvas.style.perspective = '';
+            } else {
+                const baseT = 'translate(' + offsetX + 'px,' + offsetY + 'px) scale(' + sc + ')';
+                if (layer) layer.style.transform = baseT;
+                if (sel) sel.style.transform += ' scale(' + sc + ')';
+                canvas.style.perspective = '';
+            }
+        };
+
+        // === Undo/Redo ===
+        let undoStack = [];
+        let redoStack = [];
+        const MAX_UNDO = 30;
+
+        // srcを除外した軽量スナップショット（イレーサーパスも含む）
+        function snapshotState() {
+            const lightSt = stickers.map(s => ({
+                id: s.id, srcId: s.srcId, x: s.x, y: s.y, w: s.w, h: s.h,
+                rotation: s.rotation, isDummy: s.isDummy
+            }));
+            return JSON.stringify({ st: lightSt, er: eraserPaths });
+        }
+
+        function restoreState(jsonStr) {
+            const data = JSON.parse(jsonStr);
+            stickers.length = 0;
+            data.st.forEach(s => {
+                if (!s.src && s.srcId) {
+                    const img = uploadedImages.find(u => u.id === s.srcId);
+                    if (img) s.src = img.src;
+                }
+                stickers.push(s);
+            });
+            eraserPaths = data.er || [];
+        }
+
+        function saveUndoState() {
+            try {
+                undoStack.push(snapshotState());
+                if (undoStack.length > MAX_UNDO) undoStack.shift();
+                redoStack.length = 0;
+                updateUndoButtons();
+            } catch(err) { console.warn('undo save skip', err); }
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            try { redoStack.push(snapshotState()); } catch(err) {}
+            restoreState(undoStack.pop());
+            selectedId = null;
+            renderUploadGrid(); renderCanvas(); updateUI();
+            updateUndoButtons();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            try { undoStack.push(snapshotState()); } catch(err) {}
+            restoreState(redoStack.pop());
+            selectedId = null;
+            renderUploadGrid(); renderCanvas(); updateUI();
+            updateUndoButtons();
+        }
+
+        function updateUndoButtons() {
+            $('undoBtn').disabled = undoStack.length === 0;
+            $('redoBtn').disabled = redoStack.length === 0;
+        }
+
+        $('undoBtn').addEventListener('click', undo);
+        $('redoBtn').addEventListener('click', redo);
+
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
+        });
+
+        // Undo保存をBOMB・追加・削除・移動完了時に組み込む
+        const _origBombForUndo = bomb;
+        bomb = function() { saveUndoState(); _origBombForUndo(); };
+        const _origAddMoreForUndo = addMore;
+        addMore = function() { saveUndoState(); _origAddMoreForUndo(); };
+        const _origDelSelForUndo = delSel;
+        delSel = function() { saveUndoState(); _origDelSelForUndo(); };
+
+        // pointerup時（ドラッグ完了）にもUndo保存
+        const _origPointerUpHandler = document.onpointerup;
+        document.addEventListener('pointerup', e => {
+            if (dragState) saveUndoState();
+        }, true);
 
         // 初期キャンバスサイズ反映
         applyCanvasSize();
